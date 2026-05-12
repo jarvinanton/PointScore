@@ -8,10 +8,13 @@ using PointScore.Services;
 using System;
 using System.Collections.Generic;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace PointScore.Controllers
 {
     [ApiController]
     [Route("api/licenses")]
+    [Authorize(Roles = "Admin")]
     public class LicensesController : ControllerBase
     {
         private readonly CoreDbContext _db;
