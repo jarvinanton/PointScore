@@ -38,7 +38,7 @@ namespace PointScore.Data
         // ============================Deliverable======================================
         public DbSet<WsmDeliverable> WsmDeliverables => Set<WsmDeliverable>();
         public DbSet<Deliverable> Deliverables => Set<Deliverable>();
-        public DbSet<WsmDeliverableAssignment> WsmDeliverableAssignments => Set<WsmDeliverableAssignment>();
+
         // ============================FunctionalArea======================================
         public DbSet<FunctionalArea> FunctionalAreas => Set<FunctionalArea>();
         public DbSet<WsmFunctionalImpact> WsmFunctionalImpacts => Set<WsmFunctionalImpact>();
@@ -623,41 +623,7 @@ namespace PointScore.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ========================
-            // WsmDeliverableAssignment - Asignaciones de deliverables a WSM
-            // ========================
-            modelBuilder.Entity<WsmDeliverableAssignment>(entity =>
-            {
-                entity.HasKey(e => e.Id);
 
-                entity.HasOne(e => e.WsmRequest)
-                      .WithMany(w => w.DeliverableAssignments)
-                      .HasForeignKey(e => e.WsmRequestId)
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(e => e.ResponsibleIptMember)
-                      .WithMany()
-                      .HasForeignKey(e => e.ResponsibleIptMemberId)
-                      .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.UpdatedByUser)
-                      .WithMany()
-                      .HasForeignKey(e => e.UpdatedByUserId)
-                      .OnDelete(DeleteBehavior.NoAction);
-
-                // Índice compuesto para evitar duplicados
-                entity.HasIndex(e => new { e.WsmRequestId, e.DeliverableCatalogId })
-                      .IsUnique();
-
-                // Índice para búsquedas por deliverable catalog ID
-                entity.HasIndex(e => e.DeliverableCatalogId);
-
-                // Índice para búsquedas por estado
-                entity.HasIndex(e => e.Status);
-
-                // Índice para búsquedas por responsable
-                entity.HasIndex(e => e.ResponsibleIptMemberId);
-            });
             
              // ========================
             // TRL Levels

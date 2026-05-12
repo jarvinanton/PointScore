@@ -672,4 +672,150 @@ public class PointScoreController : ControllerBase
 
         return Ok(detail);
     }
+
+    /// <param name="wsmRequestId">The ID of the WSM Request.</param>
+    /// <returns>A DTO containing the detailed technical score breakdown.</returns>
+    [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-technical-score")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    public async Task<IActionResult> CalculateHighCategoryTechnicalScore(Guid wsmRequestId)
+    {
+        try
+        {
+            var result = await _scoreCalculator.CalculateHighCategoryTechnicalScoreDetailsAsync(wsmRequestId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An internal error occurred", detail = ex.Message, stackTrace = ex.StackTrace });
+        }
+    }
+
+    /// <param name="wsmRequestId">The ID of the WSM Request.</param>
+    /// <returns>A DTO containing the detailed functional score breakdown.</returns>
+    [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-functional-score")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    public async Task<IActionResult> CalculateHighCategoryFunctionalScore(Guid wsmRequestId)
+    {
+        try
+        {
+            var result = await _scoreCalculator.CalculateHighCategoryFunctionalScoreDetailsAsync(wsmRequestId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An internal error occurred", detail = ex.Message, stackTrace = ex.StackTrace });
+        }
+    }
+
+    /// <param name="wsmRequestId">The ID of the WSM Request.</param>
+    /// <returns>A DTO containing the detailed user score breakdown.</returns>
+    [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-user-score")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    public async Task<IActionResult> CalculateHighCategoryUserScore(Guid wsmRequestId)
+    {
+        try
+        {
+            var result = await _scoreCalculator.CalculateHighCategoryUserScoreDetailsAsync(wsmRequestId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An internal error occurred", detail = ex.Message, stackTrace = ex.StackTrace });
+        }
+    }
+
+    [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-schedule-score")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    public async Task<IActionResult> CalculateHighCategoryScheduleScore(Guid wsmRequestId)
+    {
+        try
+        {
+            var result = await _scoreCalculator.CalculateHighCategoryScheduleScoreDetailsAsync(wsmRequestId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An internal error occurred", detail = ex.Message, stackTrace = ex.StackTrace });
+        }
+    }
+
+    /// <param name="wsmRequestId">The ID of the WSM Request.</param>
+    /// <returns>A DTO containing the detailed cost score breakdown.</returns>
+    [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-cost-score")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    public async Task<IActionResult> CalculateHighCategoryCostScore(Guid wsmRequestId)
+    {
+        try
+        {
+            var result = await _scoreCalculator.CalculateHighCategoryCostScoreDetailsAsync(wsmRequestId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An internal error occurred", detail = ex.Message, stackTrace = ex.StackTrace });
+        }
+    }
+
+    [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-cost-correlated-score")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    public async Task<IActionResult> CalculateCostCorrelatedScore(Guid wsmRequestId)
+    {
+        try
+        {
+            var result = await _scoreCalculator.CalculateCostCorrectionScoreDetailsAsync(wsmRequestId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An internal error occurred", detail = ex.Message, stackTrace = ex.StackTrace });
+        }
+    }
 }

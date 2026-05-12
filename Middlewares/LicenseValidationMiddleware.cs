@@ -36,15 +36,15 @@ namespace PointScore.Middlewares
                 return;
             }
 
-            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            var licenseToken = context.Request.Headers["X-License-Token"].FirstOrDefault();
+            if (string.IsNullOrEmpty(licenseToken))
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                await context.Response.WriteAsync("Missing or invalid Authorization header.");
+                await context.Response.WriteAsync("Missing or invalid X-License-Token header.");
                 return;
             }
 
-            var token = authHeader.Substring("Bearer ".Length).Trim();
+            var token = licenseToken.Trim();
 
             try
             {

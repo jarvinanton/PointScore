@@ -81,5 +81,20 @@ namespace PointScore.Controllers
             var token = _jwt.GenerateLicenseToken(lic);
             return Ok(new { token });
         }
+
+        [HttpPost("verify")]
+        public async Task<IActionResult> VerifyLicense([FromBody] LicenseValidationRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.Key)) return BadRequest("License key is required");
+
+            var lic = await _db.Licenses.FirstOrDefaultAsync(x => x.Key == request.Key);
+            if (lic == null) return NotFound("License key not found");
+
+            if (!string.Equals(lic.Status, "Active", StringComparison.OrdinalIgnoreCase)) return BadRequest("License is not active");
+            if (lic.Expiration <= DateTime.UtcNow) return BadRequest("License has expired");
+
+            var token = _jwt.GenerateLicenseToken(lic);
+            return Ok(new { token });
+        }
     }
 }
