@@ -63,7 +63,7 @@ namespace PointScore.Models
         public ICollection<WsmFunctionalImpact> FunctionalImpacts { get; set; } = new List<WsmFunctionalImpact>();
         public ICollection<WsmDeliverable> Deliverables { get; set; } = new List<WsmDeliverable>();
         public ICollection<WsmDetailedSiaResponse> DetailedSiaResponses { get; set; } = new List<WsmDetailedSiaResponse>();
-        public ICollection<WsmDeliverableAssignment> DeliverableAssignments { get; set; } = new List<WsmDeliverableAssignment>();
+
         public Guid? BlockId { get; set; }
         public Block? Block { get; set; }
         public WsmSiaScore? SiaScore { get; set; }

@@ -223,14 +223,15 @@ public class ScoreCalculator
 
         // 4. DELIV
         // Applicable WSM Score of all applicable deliverables for this WSM
-        var assignedCatalogIds = await _context.WsmDeliverableAssignments
+        var assignedDeliverableCodes = await _context.WsmDeliverables
+            .Include(d => d.Deliverable)
             .Where(d => d.WsmRequestId == wsmRequestId)
-            .Select(d => d.DeliverableCatalogId)
+            .Select(d => d.Deliverable.Code)
             .ToListAsync();
 
-        var deliverables = _catalogService.GetAllDeliverables();
-        dto.DELIV_Score = deliverables
-            .Where(d => assignedCatalogIds.Contains(d.Id) && d.IsApplicableWSM)
+        var catalogDeliverables = _catalogService.GetAllDeliverables();
+        dto.DELIV_Score = catalogDeliverables
+            .Where(d => assignedDeliverableCodes.Contains(d.DIDNumber) && d.IsApplicableWSM)
             .Sum(d => d.ApplicableWSMScore ?? 0m);
 
         // 5. SRR, PDR, CDR
@@ -398,13 +399,14 @@ public class ScoreCalculator
         dto.TRL_Score = trl?.Score ?? 0m;
 
         // 3. Deliverables (15%) -> Sum of applicable WSM scores
-        var assignedCatalogIds = await _context.WsmDeliverableAssignments
+        var assignedDeliverableCodes = await _context.WsmDeliverables
+            .Include(d => d.Deliverable)
             .Where(d => d.WsmRequestId == wsmRequestId)
-            .Select(d => d.DeliverableCatalogId)
+            .Select(d => d.Deliverable.Code)
             .ToListAsync();
-        var deliverables = _catalogService.GetAllDeliverables();
-        dto.Deliverables_Score = deliverables
-            .Where(d => assignedCatalogIds.Contains(d.Id) && d.IsApplicableWSM)
+        var catalogDeliverables = _catalogService.GetAllDeliverables();
+        dto.Deliverables_Score = catalogDeliverables
+            .Where(d => assignedDeliverableCodes.Contains(d.DIDNumber) && d.IsApplicableWSM)
             .Sum(d => d.ApplicableWSMScore ?? 0m);
 
         // 4. MRL (5%) -> (280 - score) / 280 * 10
