@@ -14,6 +14,19 @@ namespace PointScore.Services
             _db = db;
         }
 
+        public async Task<bool> IsUserLicensedAsync(Guid userId)
+        {
+            var license = await _db.Licenses
+                .FirstOrDefaultAsync(l => l.UserId == userId && l.Status == "Active" && l.Expiration > DateTime.UtcNow);
+            
+            if (license == null)
+                return false;
+
+            // Optional: Increment usage or check monthly limits if needed
+            // For now, just being linked to an active, non-expired license is enough.
+            return true;
+        }
+
         public async Task<bool> IsValidAsync(string licenseKey)
         {
             var license = await _db.Licenses.FirstOrDefaultAsync(l => l.Key == licenseKey);

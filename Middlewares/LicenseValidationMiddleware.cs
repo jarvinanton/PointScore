@@ -8,6 +8,7 @@ using PointScore.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using System.Security.Claims;
 
 namespace PointScore.Middlewares
 {
@@ -36,54 +37,20 @@ namespace PointScore.Middlewares
                 return;
             }
 
-            var licenseToken = context.Request.Headers["X-License-Token"].FirstOrDefault();
-            if (string.IsNullOrEmpty(licenseToken))
+            // Extract UserId from the authenticated User
+            var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                await context.Response.WriteAsync("Missing or invalid X-License-Token header.");
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsync("User is not authenticated or user ID is missing.");
                 return;
             }
 
-            var token = licenseToken.Trim();
-
-            try
+            // Check if the user has an active license
+            if (!await licenseService.IsUserLicensedAsync(userId))
             {
-                var signingKey = _config["LicenseTokens:SigningKey"];
-                if (string.IsNullOrWhiteSpace(signingKey))
-                    throw new InvalidOperationException("LicenseTokens:SigningKey is missing");
-
-                var keyBytes = Convert.FromBase64String(signingKey);
-                var tokenHandler = new JwtSecurityTokenHandler();
-
-                var issuer = _config["LicenseTokens:Issuer"];
-                var audience = _config["LicenseTokens:Audience"];
-
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-                    ValidateIssuer = true,
-                    ValidIssuer = issuer,
-                    ValidateAudience = true,
-                    ValidAudience = audience,
-                    ClockSkew = TimeSpan.Zero
-                }, out var validatedToken);
-
-                var jwtToken = (JwtSecurityToken)validatedToken;
-                var licenseIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "lic.id")?.Value;
-
-                if (licenseIdClaim == null || !await licenseService.ExistsAsync(licenseIdClaim))
-                {
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    await context.Response.WriteAsync("License not found or expired.");
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Invalid or expired license token");
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                await context.Response.WriteAsync("Invalid or expired license token.");
+                await context.Response.WriteAsync("A premium license is required to access this resource.");
                 return;
             }
 
