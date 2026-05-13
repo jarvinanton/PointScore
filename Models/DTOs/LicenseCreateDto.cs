@@ -13,5 +13,7 @@ namespace PointScore.Models.DTOs
         public DateTime Expiration { get; set; }
 
         public string Status { get; set; } = "Active";
+
+        public Guid? UserId { get; set; }
     }
 }

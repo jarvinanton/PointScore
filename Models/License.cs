@@ -1,11 +1,17 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PointScore.Models
 {
     public class License
     {
         public int Id { get; set; }
+        
+        public Guid? UserId { get; set; }
+        
+        [ForeignKey("UserId")]
+        public User? User { get; set; }
 
         [Required]
         [StringLength(100, MinimumLength = 10, ErrorMessage = "License key must be between 10 and 100 characters.")]
