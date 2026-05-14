@@ -30,7 +30,7 @@ namespace PointScore.Middlewares
             var path = context.Request.Path.Value ?? "";
             
             // Allow Swagger, favicon, health and license management endpoints
-            if (path.StartsWith("/swagger") || path == "/favicon.ico" || path == "/health" ||
+            if (path == "/" || path.StartsWith("/swagger") || path == "/favicon.ico" || path == "/health" ||
                 path.StartsWith("/api/licenses"))
             {
                 await _next(context);
