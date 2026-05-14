@@ -52,4 +52,4 @@ jobs:
           app-name: 'PointScoreAPI'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F321E86744774288B70E59C548F4EFA4 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5C4B2AEEBA724F0CA6BCD0DCA02369BE }}
