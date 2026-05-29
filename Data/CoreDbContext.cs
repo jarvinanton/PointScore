@@ -74,6 +74,8 @@ namespace PointScore.Data
         // ============================MRL======================================
         public DbSet<MRLSubThread> MRLSubThreads => Set<MRLSubThread>();
         public DbSet<MRLResponse> MRLResponses => Set<MRLResponse>();
+        // ============================HistoricalScore======================================
+        public DbSet<WsmHistoricalScore> WsmHistoricalScores => Set<WsmHistoricalScore>();
 
 
 
@@ -881,6 +883,36 @@ namespace PointScore.Data
                 new MRLSubThread { Id = 24, Thread = "I - Manufacturing Management", SubThreadCode = "I.3", SubThreadName = "Manufacturing OT Cybersecurity", Description = "OT cybersecurity requirements for system concepts identified. OT cybersecurity vulnerabilities of potential manufacturing facilities identified.", DisplayOrder = 24 }
             );
 
+            // ============================HistoricalScore======================================
+            modelBuilder.Entity<WsmHistoricalScore>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                
+                entity.HasOne(e => e.WsmRequest)
+                      .WithMany(w => w.HistoricalScores)
+                      .HasForeignKey(e => e.WsmRequestId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(e => e.TechnicalScore).HasPrecision(18, 4);
+                entity.Property(e => e.FunctionalScore).HasPrecision(18, 4);
+                entity.Property(e => e.UserScore).HasPrecision(18, 4);
+                entity.Property(e => e.ScheduleScore).HasPrecision(18, 4);
+                entity.Property(e => e.CostScore).HasPrecision(18, 4);
+                entity.Property(e => e.WsmCompositeScore).HasPrecision(18, 4);
+                entity.Property(e => e.CostCorrelatedScore).HasPrecision(18, 4);
+                entity.Property(e => e.TrlScore).HasPrecision(18, 4);
+                entity.Property(e => e.MrlScore).HasPrecision(18, 4);
+                entity.Property(e => e.OriScore).HasPrecision(18, 4);
+                entity.Property(e => e.TimeCriticalityScore).HasPrecision(18, 4);
+                entity.Property(e => e.SiaEAScore).HasPrecision(18, 4);
+                entity.Property(e => e.SiaOFAScore).HasPrecision(18, 4);
+                entity.Property(e => e.SiaNEScore).HasPrecision(18, 4);
+                entity.Property(e => e.SiaNOFAScore).HasPrecision(18, 4);
+                entity.Property(e => e.DevelopmentCost).HasPrecision(18, 2);
+                entity.Property(e => e.TotalProductionCost).HasPrecision(18, 2);
+                entity.Property(e => e.InstallationCost).HasPrecision(18, 2);
+                entity.Property(e => e.TotalWsmCost).HasPrecision(18, 2);
+            });
         }
 
     }

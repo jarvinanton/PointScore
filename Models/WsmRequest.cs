@@ -82,6 +82,6 @@ namespace PointScore.Models
         public decimal? MrlCompositeScore { get; set; }
         public virtual ICollection<MRLResponse> MRLResponses { get; set; } = new List<MRLResponse>();
 
-
+        public virtual ICollection<WsmHistoricalScore> HistoricalScores { get; set; } = new List<WsmHistoricalScore>();
     }
 }
