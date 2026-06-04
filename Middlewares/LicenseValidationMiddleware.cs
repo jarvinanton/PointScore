@@ -42,7 +42,8 @@ namespace PointScore.Middlewares
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("User is not authenticated or user ID is missing.");
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync("{\"message\": \"User is not authenticated or user ID is missing.\"}");
                 return;
             }
 
@@ -50,7 +51,8 @@ namespace PointScore.Middlewares
             if (!await licenseService.IsUserLicensedAsync(userId))
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                await context.Response.WriteAsync("A premium license is required to access this resource.");
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync("{\"message\": \"A premium license is required to access this resource.\"}");
                 return;
             }
 

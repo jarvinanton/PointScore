@@ -93,6 +93,14 @@ builder.Services.AddScoped<ScoreCalculator>();
 builder.Services.AddScoped<IDeliverableCatalogService, DeliverableCatalogService>();
 builder.Services.AddScoped<IWsmInterfaceService, WsmInterfaceService>();
 
+// AI Service (Task 481 / 482 — TRL determination and ERB/SIA assessment)
+builder.Services.AddHttpClient("OpenAI", client =>
+{
+    client.BaseAddress = new Uri("https://api.openai.com/");
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddScoped<IAiService, AiService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
