@@ -623,7 +623,7 @@ public async Task<IActionResult> ProcessMbse([FromBody] DataResponseDto request)
     /// <param name="wsmRequestId">The ID of the WSM Request.</param>
     /// <returns>A DTO containing the detailed technical score breakdown.</returns>
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-technical-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryTechnicalScore(Guid wsmRequestId)
     {
         try
@@ -648,7 +648,7 @@ public async Task<IActionResult> ProcessMbse([FromBody] DataResponseDto request)
     /// <param name="wsmRequestId">The ID of the WSM Request.</param>
     /// <returns>A DTO containing the detailed functional score breakdown.</returns>
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-functional-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryFunctionalScore(Guid wsmRequestId)
     {
         try
@@ -673,7 +673,7 @@ public async Task<IActionResult> ProcessMbse([FromBody] DataResponseDto request)
     /// <param name="wsmRequestId">The ID of the WSM Request.</param>
     /// <returns>A DTO containing the detailed user score breakdown.</returns>
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-user-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryUserScore(Guid wsmRequestId)
     {
         try
@@ -696,7 +696,7 @@ public async Task<IActionResult> ProcessMbse([FromBody] DataResponseDto request)
     }
 
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-schedule-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryScheduleScore(Guid wsmRequestId)
     {
         try
@@ -721,7 +721,7 @@ public async Task<IActionResult> ProcessMbse([FromBody] DataResponseDto request)
     /// <param name="wsmRequestId">The ID of the WSM Request.</param>
     /// <returns>A DTO containing the detailed cost score breakdown.</returns>
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-cost-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryCostScore(Guid wsmRequestId)
     {
         try
@@ -744,7 +744,7 @@ public async Task<IActionResult> ProcessMbse([FromBody] DataResponseDto request)
     }
 
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-cost-correlated-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateCostCorrelatedScore(Guid wsmRequestId)
     {
         try
