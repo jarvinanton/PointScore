@@ -73,9 +73,13 @@ namespace PointScore.Services
             {
                 // Update existing
                 existing.HasPhysical = dto.HasPhysical;
+                existing.PhysicalCount = dto.PhysicalCount;
                 existing.HasEnergy = dto.HasEnergy;
+                existing.EnergyCount = dto.EnergyCount;
                 existing.HasMass = dto.HasMass;
+                existing.MassCount = dto.MassCount;
                 existing.HasInfo = dto.HasInfo;
+                existing.InfoCount = dto.InfoCount;
                 existing.Comments = dto.Comments;
                 existing.ModifiedAt = DateTime.UtcNow;
             }
@@ -88,9 +92,13 @@ namespace PointScore.Services
                     TargetWsmId = targetWsmId,
 
                     HasPhysical = dto.HasPhysical,
+                    PhysicalCount = dto.PhysicalCount,
                     HasEnergy = dto.HasEnergy,
+                    EnergyCount = dto.EnergyCount,
                     HasMass = dto.HasMass,
+                    MassCount = dto.MassCount,
                     HasInfo = dto.HasInfo,
+                    InfoCount = dto.InfoCount,
                     IsInternal = dto.IsInternal,
                     Comments = dto.Comments,
                     CreatedAt = DateTime.UtcNow,

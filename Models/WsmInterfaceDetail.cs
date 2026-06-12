@@ -18,9 +18,13 @@ namespace PointScore.Models
 
 
         public bool HasPhysical { get; set; }
+        public int? PhysicalCount { get; set; }
         public bool HasEnergy { get; set; }
+        public int? EnergyCount { get; set; }
         public bool HasMass { get; set; }
+        public int? MassCount { get; set; }
         public bool HasInfo { get; set; }
+        public int? InfoCount { get; set; }
 
         public bool IsInternal { get; set; } = false;
 
