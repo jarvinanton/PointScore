@@ -11,7 +11,7 @@ namespace PointScore.Data
         public DbSet<License> Licenses { get; set; }
         public DbSet<LicenseUsage> LicenseUsages { get; set; }
         public DbSet<Project> Projects { get; set; }
-        public DbSet<FeatureScoreResult> FeatureScoresResults { get; set; }
+        // public DbSet<FeatureScoreResult> FeatureScoresResults { get; set; }
         public DbSet<MbseResult> MbseResults { get; set; }  
           // ============================APIScore======================================
         // DbSets - todos los modelos independientes
@@ -85,18 +85,23 @@ namespace PointScore.Data
         {
             base.OnModelCreating(modelBuilder);
             // ============================APIScore======================================
-             modelBuilder.Entity<Project>()
-            .HasOne(p => p.FeatureScoreResult)
-            .WithOne(fsr => fsr.Project)
-            .HasForeignKey<FeatureScoreResult>(fsr => fsr.ProjectId)
-            .IsRequired(false);
+             /*
+            modelBuilder.Entity<Project>()
+                .HasOne(p => p.FeatureScoreResult)
+                .WithOne(fsr => fsr.Project)
+                .HasForeignKey<FeatureScoreResult>(fsr => fsr.ProjectId)
+                .IsRequired(false);
+            */
 
-            modelBuilder.Entity<WsmRequest>()
-                .HasOne(w => w.FeatureScoreResult)
-                .WithOne(f => f.WsmRequest)
-                .HasForeignKey<FeatureScoreResult>(f => f.WsmRequestId)
-                .OnDelete(DeleteBehavior.Cascade);
+            /*
+                modelBuilder.Entity<WsmRequest>()
+                    .HasOne(w => w.FeatureScoreResult)
+                    .WithOne(f => f.WsmRequest)
+                    .HasForeignKey<FeatureScoreResult>(f => f.WsmRequestId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                */
 
+            /* DEPRECATED: FeatureScoreResult entity configuration — entity removed
             modelBuilder.Entity<FeatureScoreResult>(entity =>
             {
                 // Configurar precisión para todas las propiedades decimal
@@ -158,6 +163,8 @@ namespace PointScore.Data
                 entity.Property(e => e.RISK_TOL_LIKLI_SCORE).HasPrecision(18, 2);
                 entity.Property(e => e.RISK_TOL_CONS_SCORE).HasPrecision(18, 2);
             });
+            */ // END DEPRECATED FeatureScoreResult configuration
+
 
             // Configurar precisión para MbseResult
             modelBuilder.Entity<MbseResult>(entity =>

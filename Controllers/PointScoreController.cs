@@ -33,9 +33,15 @@ public class PointScoreController : ControllerBase
     /// </summary>
     /// <param name="inputDto">The feature score data to be saved.</param>
     /// <returns>A JSON object containing the input data and calculated outputs.</returns>
+    /*
     [HttpPost("wsm-feature")]
     public async Task<IActionResult> WsmFeature([FromBody] FeatureScoreInputDto inputDto)
     {
+        // Endpoint deprecated. FeatureScoreResult functionality removed.
+        return NotFound("FeatureScoreResult endpoint is deprecated.");
+    }
+    */
+    /* DEPRECATED: POST WsmFeature body — FeatureScoreResult removed
         if (!ModelState.IsValid)
         {
             var errors = ModelState
@@ -164,13 +170,16 @@ public class PointScoreController : ControllerBase
 
         return Ok(input);
     }
+    */ // END DEPRECATED POST WsmFeature body
+
     /// <summary>
 /// Updates an existing feature score entry by ID.
 /// </summary>
 /// <param name="projectId">The ID of the project to update.</param>
 /// <param name="inputDto">The updated feature score data.</param>
 /// <returns>A JSON object containing the updated data and calculated outputs.</returns>
-[HttpPut("wsm-feature/project/{projectId}")]
+/* DEPRECATED: PUT WsmFeature — FeatureScoreResult removed
+    [HttpPut("wsm-feature/project/{projectId}")]
     public async Task<IActionResult> WsmFeature(int projectId, [FromBody] FeatureScoreInputDto inputDto)
     {
         if (!ModelState.IsValid)
@@ -291,46 +300,36 @@ public class PointScoreController : ControllerBase
     // 6. Return the updated record in the response.
     return Ok(existingScore);
 }
+*/ // END DEPRECATED PUT WsmFeature
 
     /// <summary>
     /// Retrieves a list of recent scores for the dashboard.
     /// </summary>
     /// <returns>A list of recent feature score inputs, including project name.</returns>
-    [HttpGet("dashboard")]
-    public async Task<IActionResult> GetScores()
-    {
-        // Joins with the Project entity to get the project name
-        // and retrieves the last 10 records.
-        var results = await _context.FeatureScoresResults
-            .Include(fs => fs.Project) // Eager loads the related Project object
-            .OrderByDescending(fs => fs.CreatedAt)
-            .Take(10)
-            .Select(f => new
-            {
-                // Include the project name for better dashboard visualization.
-                ProjectName = f.Project != null ? f.Project.Name : "Unknown",
-                WsmRequestId = f.WsmRequestId,
-                // Now returning the actual calculated output metrics.
-                WSM_COMP_SCORE = f.WSM_COMP_SCORE,
-                HICAT_TECH_SCORE = f.HICAT_TECH_SCORE,
-                HICAT_FNTL_SCORE = f.HICAT_FNTL_SCORE,
-                HICAT_SCH_SCORE = f.HICAT_SCH_SCORE,
-                HICAT_USER_SCORE = f.HICAT_USER_SCORE,
-                HICAT_COST_SCORE = f.HICAT_COST_SCORE
-            })
-            .ToListAsync();
-
-        return Ok(results);
-    }
+    /*
+[HttpGet("dashboard")]
+public async Task<IActionResult> GetScores()
+{
+    // Method removed as FeatureScoreResult is deprecated.
+    return NotFound("FeatureScoreResult endpoint is deprecated.");
+}
+*/
 
     /// <summary>
     /// Retrieves the most recent score data for external module reporting.
     /// </summary>
     /// <returns>A JSON object with recent score data formatted for various modules.</returns>
+    /*
     [HttpGet("external-module")]
     public async Task<IActionResult> GetExternalModules()
     {
-        // Gets the most recent FeatureScore record along with its associated Project
+        // Endpoint deprecated. FeatureScoreResult functionality removed.
+        return NotFound("FeatureScoreResult endpoint is deprecated.");
+    }
+    */
+    /* DEPRECATED: GetExternalModules — FeatureScoreResult removed
+    public async Task<IActionResult> GetExternalModules_Deprecated()
+    {
         var lastResult = await _context.FeatureScoresResults
             .Include(fs => fs.Project)
             .OrderByDescending(f => f.Id)
@@ -374,86 +373,34 @@ public class PointScoreController : ControllerBase
 
         return Ok(response);
     }
+    */ // END DEPRECATED GetExternalModules
 
     /// <summary>
     /// Processes data from an Artificial Intelligence module.
     /// </summary>
     /// <param name="request">The AI request DTO.</param>
     /// <returns>A response confirming the AI data has been processed and stored.</returns>
-    [HttpPost("artificial-intelligence")]
-    public async Task<IActionResult> PostArtificialIntelligence([FromBody] AiRequestDto request)
-    {
-        if (request == null || request.UpdatedScoreData == null)
-        {
-            return BadRequest("Invalid request payload.");
-        }
-
-        // Crea un nuevo registro de FeatureScoreResult primero.
-        var score = new FeatureScoreResult
-        {
-            CreatedAt = DateTime.UtcNow
-            // Placeholder: Asume que 'UpdatedScoreData' es mapeado a las entradas
-            // e.g., EngSIA = request.UpdatedScoreData.EngSIA, etc.
-        };
-
-        // Crea un nuevo Project y establece la relación de uno a uno.
-        var newProject = new Project
-        {
-            Name = "AI Generated Project",
-            FeatureScoreResult = score
-        };
-
-        _context.Projects.Add(newProject);
-        await _context.SaveChangesAsync();
-
-        // Construye la respuesta.
-        var response = new AiResponseDto
-        {
-            AiRequest = request.AiResponse,
-            ScoreData = score
-        };
-
-        return Ok(response);
-    }
+    /*
+[HttpPost("artificial-intelligence")]
+public async Task<IActionResult> PostArtificialIntelligence([FromBody] AiRequestDto request)
+{
+    // Method removed as FeatureScoreResult is deprecated.
+    return NotFound("FeatureScoreResult endpoint is deprecated.");
+}
+*/
     /// <summary>
     /// Processes data from an MBSE (Model-Based Systems Engineering) module.
     /// </summary>
     /// <param name="request">The MBSE data request DTO.</param>
     /// <returns>A response confirming the MBSE data has been processed and stored.</returns>
-    [HttpPost("mbse-process")]
-    public async Task<IActionResult> ProcessMbse([FromBody] DataResponseDto request)
-    {
-        if (request == null)
-            return BadRequest("Invalid request payload.");
-
-        // Creamos un nuevo FeatureScoreResult y mapeamos los datos.
-        var scoreResult = new FeatureScoreResult
-        {
-            HICAT_COST_SCORE = Math.Round(request.CostScore, 2),
-            WSM_COMP_SCORE = Math.Round(request.Metrics, 2),
-            CreatedAt = DateTime.UtcNow
-        };
-
-        // Creamos un nuevo Project y establecemos la relación de uno a uno.
-        var newProject = new Project
-        {
-            Name = "MBSE Generated Project",
-            FeatureScoreResult = scoreResult
-        };
-
-        _context.Projects.Add(newProject);
-        await _context.SaveChangesAsync();
-
-        // La respuesta ahora se basa en el FeatureScoreResult.
-        var response = new
-        {
-            DataRequest = "MBSE Data Request",
-            HICAT_COST_SCORE = scoreResult.HICAT_COST_SCORE,
-            WSM_COMP_SCORE = scoreResult.WSM_COMP_SCORE
-        };
-
-        return Ok(response);
-    }
+    /*
+[HttpPost("mbse-process")]
+public async Task<IActionResult> ProcessMbse([FromBody] DataResponseDto request)
+{
+    // Method removed as FeatureScoreResult is deprecated.
+    return NotFound("FeatureScoreResult endpoint is deprecated.");
+}
+*/
 
     /// <summary>
     /// Calculates and saves SIA scores for a specific WSM.
@@ -676,7 +623,7 @@ public class PointScoreController : ControllerBase
     /// <param name="wsmRequestId">The ID of the WSM Request.</param>
     /// <returns>A DTO containing the detailed technical score breakdown.</returns>
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-technical-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryTechnicalScore(Guid wsmRequestId)
     {
         try
@@ -701,7 +648,7 @@ public class PointScoreController : ControllerBase
     /// <param name="wsmRequestId">The ID of the WSM Request.</param>
     /// <returns>A DTO containing the detailed functional score breakdown.</returns>
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-functional-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryFunctionalScore(Guid wsmRequestId)
     {
         try
@@ -726,7 +673,7 @@ public class PointScoreController : ControllerBase
     /// <param name="wsmRequestId">The ID of the WSM Request.</param>
     /// <returns>A DTO containing the detailed user score breakdown.</returns>
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-user-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryUserScore(Guid wsmRequestId)
     {
         try
@@ -749,7 +696,7 @@ public class PointScoreController : ControllerBase
     }
 
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-schedule-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryScheduleScore(Guid wsmRequestId)
     {
         try
@@ -774,7 +721,7 @@ public class PointScoreController : ControllerBase
     /// <param name="wsmRequestId">The ID of the WSM Request.</param>
     /// <returns>A DTO containing the detailed cost score breakdown.</returns>
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-cost-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateHighCategoryCostScore(Guid wsmRequestId)
     {
         try
@@ -797,7 +744,7 @@ public class PointScoreController : ControllerBase
     }
 
     [HttpGet("wsm-feature/{wsmRequestId:guid}/calculate-cost-correlated-score")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,ProgramManager,ConfigurationManager,WSMOwner,BlockOwner,IPTLogistics,IPTProductionGFE,IPTSafety,IPTQuality,IPTCyber,IPTSoftware,IPTSystemsEngineering,IPTTest,IPTAcquisition,IPTFinance,IPTProgramManagement,IPTSecurity")]
     public async Task<IActionResult> CalculateCostCorrelatedScore(Guid wsmRequestId)
     {
         try
