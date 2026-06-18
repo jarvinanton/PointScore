@@ -193,15 +193,20 @@ namespace PointScore.Services
                 }
                 else
                 {
-                    // External only: Target in block AND isInternal = false
-                    query = query.Where(d => d.TargetWsmId != null && wsmIds.Contains(d.TargetWsmId.Value) && !d.IsInternal);
+                    // External only: Target in block OR (source in block with TargetWsmId=null), AND isInternal = false
+                    query = query.Where(d => !d.IsInternal && (
+                        (d.TargetWsmId != null && wsmIds.Contains(d.TargetWsmId.Value)) ||
+                        (d.TargetWsmId == null && wsmIds.Contains(d.WsmRequestId))
+                    ));
                 }
             }
             else
             {
-                // Both: Existing logic
-                query = query.Where(d => (d.TargetWsmId != null && wsmIds.Contains(d.TargetWsmId.Value)) || 
-                                          (wsmIds.Contains(d.WsmRequestId) && d.IsInternal));
+                // Both: Existing logic with TargetWsmId=null support
+                query = query.Where(d =>
+                    (d.TargetWsmId != null && wsmIds.Contains(d.TargetWsmId.Value)) ||
+                    (d.TargetWsmId == null && wsmIds.Contains(d.WsmRequestId)) ||
+                    (wsmIds.Contains(d.WsmRequestId) && d.IsInternal));
             }
 
             var allAssessments = await query.ToListAsync();
@@ -212,19 +217,20 @@ namespace PointScore.Services
             {
                 // Filter for this specific WSM (Incoming + Internal based on query above)
                 var wsmAssessments = allAssessments
-                    .Where(d => (!isInternal.HasValue && (d.TargetWsmId == w.Id || (d.WsmRequestId == w.Id && d.IsInternal))) ||
-                                (isInternal.HasValue && isInternal.Value && d.WsmRequestId == w.Id) ||
-                                (isInternal.HasValue && !isInternal.Value && d.TargetWsmId == w.Id))
+                    .Where(d => (!isInternal.HasValue &&
+                        (d.TargetWsmId == w.Id || (d.WsmRequestId == w.Id && d.TargetWsmId == null) || (d.WsmRequestId == w.Id && d.IsInternal))) ||
+                        (isInternal.HasValue && isInternal.Value && d.WsmRequestId == w.Id) ||
+                        (isInternal.HasValue && !isInternal.Value && (d.TargetWsmId == w.Id || (d.WsmRequestId == w.Id && d.TargetWsmId == null))))
                     .ToList();
 
                 var summary = new WsmBlockInterfaceSummaryDto
                 {
                     WsmRequestId = w.Id,
                     WsmRequestNumber = w.RequestNumber,
-                    TotalPhysical = wsmAssessments.Count(d => d.HasPhysical),
-                    TotalEnergy = wsmAssessments.Count(d => d.HasEnergy),
-                    TotalMass = wsmAssessments.Count(d => d.HasMass),
-                    TotalInfo = wsmAssessments.Count(d => d.HasInfo)
+                    TotalPhysical = wsmAssessments.Sum(d => d.PhysicalCount ?? (d.HasPhysical ? 1 : 0)),
+                    TotalEnergy = wsmAssessments.Sum(d => d.EnergyCount ?? (d.HasEnergy ? 1 : 0)),
+                    TotalMass = wsmAssessments.Sum(d => d.MassCount ?? (d.HasMass ? 1 : 0)),
+                    TotalInfo = wsmAssessments.Sum(d => d.InfoCount ?? (d.HasInfo ? 1 : 0))
                 };
                 summary.GrandTotal = summary.TotalPhysical + summary.TotalEnergy + summary.TotalMass + summary.TotalInfo;
                 summaries.Add(summary);

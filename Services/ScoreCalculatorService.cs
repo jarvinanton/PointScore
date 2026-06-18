@@ -26,6 +26,29 @@ public class ScoreCalculator
     }
 
     /// <summary>
+    /// Helper to resolve the External Interdependency score for a WSM.
+    /// INTERD = block-level interdependency scoring → GrandTotalScore
+    /// Returns 0 if the WSM is not assigned to a block.
+    /// </summary>
+    private async Task<decimal> GetInterdependencyScoreAsync(Guid wsmRequestId)
+    {
+        var wsm = await _context.WsmRequests
+            .AsNoTracking()
+            .FirstOrDefaultAsync(w => w.Id == wsmRequestId);
+
+        if (wsm == null)
+            throw new KeyNotFoundException($"WSM Request with ID {wsmRequestId} not found.");
+
+        if (wsm.BlockId != null)
+        {
+            var scoring = await _interfaceService.GetBlockInterdependencyScoringAsync(wsm.BlockId.Value);
+            return scoring.GrandTotalScore;
+        }
+
+        return 0m;
+    }
+
+    /// <summary>
     /// Helper to resolve the Self-Dependency score (Internal Complexity) for a WSM.
     /// Returns the ScoreOutput from the related block's complexity assessment.
     /// </summary>
@@ -243,12 +266,10 @@ public class ScoreCalculator
         dto.PDR_Score = milestones.FirstOrDefault(m => m.MilestoneType == "PDR")?.FinalScore ?? 0m;
         dto.CDR_Score = milestones.FirstOrDefault(m => m.MilestoneType == "CDR")?.FinalScore ?? 0m;
 
-        // 6. INTERD and SELFDEP
-        var mrlScoreTotal = await _context.MRLResponses
-            .Where(m => m.WsmRequestId == wsmRequestId)
-            .SumAsync(m => m.Score);
+        // 6. INTERD — from block-level interface interdependency scoring
+        dto.INTERD_Score = await GetInterdependencyScoreAsync(wsmRequestId);
 
-        dto.INTERD_Score = ((280m - mrlScoreTotal) / 280m) * 10m;
+        // 7. SELFDEP — from block-level internal complexity scoring
         dto.SELFDEP_Score = selfdepValue;
 
         // Aggregate with sub-weights for SRR, PDR, CDR combined into SRR_PDR_CDR component
