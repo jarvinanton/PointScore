@@ -38,6 +38,10 @@ namespace PointScore.Models
         public string? ImplementationFollowOnComments { get; set; }
         public Guid? RecommendedDesignOwnerId { get; set; }
         public virtual RecommendedDesignOwner? RecommendedDesignOwner { get; set; }    
+        public Guid? ApprovedDesignOwnerId { get; set; }
+        [ForeignKey("ApprovedDesignOwnerId")]
+        public virtual RecommendedDesignOwner? ApprovedDesignOwner { get; set; }
+        public virtual ICollection<WsmDesignOwnerAssignment> DesignOwnerAssignments { get; set; } = new List<WsmDesignOwnerAssignment>();
         public string? ImplementationNumber { get; set; }
 
         public DateTime? AssignedDate { get; set; }

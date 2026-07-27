@@ -52,6 +52,7 @@ namespace PointScore.Data
         public DbSet<Block> Blocks => Set<Block>();
         // ============================RecommendedDesignOwner======================================
         public DbSet<RecommendedDesignOwner> RecommendedDesignOwners { get; set; } = null!;
+        public DbSet<WsmDesignOwnerAssignment> WsmDesignOwnerAssignments { get; set; } = null!;
         // ============================TRL_level======================================
         public DbSet<TRL_level> TRL_levels => Set<TRL_level>();
         // ============================Milestone======================================
@@ -275,7 +276,20 @@ namespace PointScore.Data
                 entity.HasMany(ro => ro.WsmRequests)
                     .WithOne(w => w.RecommendedDesignOwner)
                     .HasForeignKey(w => w.RecommendedDesignOwnerId)
-                    .OnDelete(DeleteBehavior.SetNull); // or Restrict/Cascade based on your requirements
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<WsmDesignOwnerAssignment>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasOne(e => e.WsmRequest)
+                    .WithMany(w => w.DesignOwnerAssignments)
+                    .HasForeignKey(e => e.WsmRequestId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.DesignOwner)
+                    .WithMany()
+                    .HasForeignKey(e => e.DesignOwnerId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<FunctionalArea>(entity =>
