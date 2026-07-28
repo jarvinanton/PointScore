@@ -488,13 +488,6 @@ namespace PointScore.Data
                       .HasForeignKey(e => e.OriginatorInfoId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Relación con WsmOwner (Owner principal)
-                entity.HasOne(e => e.WsmOwner)
-                      .WithMany(o => o.OwnedWsmRequests)
-                      .HasForeignKey(e => e.WsmOwnerId)
-					  .IsRequired(false)
-                      .OnDelete(DeleteBehavior.Restrict);
-
                 // Relación con Block Owner (opcional)
                 entity.HasOne(w => w.Block)
                     .WithMany(b => b.Wsms)
