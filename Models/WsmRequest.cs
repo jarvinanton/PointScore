@@ -48,13 +48,11 @@ namespace PointScore.Models
 
         // FKs
         public Guid OriginatorInfoId { get; set; }
-        public Guid? WsmOwnerId { get; set; }
         public Guid? WsmOwnerUserId { get; set; }
         public int ModificationTypeId { get; set; }
 
         // Navegación
         public OriginatorInfo Originator { get; set; } = null!;
-        public WsmOwner? WsmOwner { get; set; }
         public ModificationType ModificationType { get; set; } = null!;
         public ApprovalWorkflow ApprovalWorkflow { get; set; } = null!;
         public ImpactAnalysis? ImpactAnalysis { get; set; }
