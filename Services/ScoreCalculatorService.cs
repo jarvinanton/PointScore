@@ -62,7 +62,7 @@ public class ScoreCalculator
             throw new KeyNotFoundException($"WSM Request with ID {wsmRequestId} not found.");
 
         if (wsm.BlockId == null)
-            throw new InvalidOperationException("The WSM is not assigned to a block. A block assignment is required to automatically retrieve the Internal Complexity Score (Self-Dependency).");
+            return 0m;
 
         var scoring = await _interfaceService.GetBlockComplexityScoringAsync(wsm.BlockId.Value);
         return scoring.ScoreOutput;
