@@ -117,20 +117,20 @@ public class ScoreCalculator
 
     /// <summary>
     /// Calculates the High Category Schedule Score.
-    /// HICAT_SCH_SCORE = ((HICAT_SCH_WT)  *  ((SCH_IMP * SCH_IMP_WT) + (FNTL_IMP * FNTL_IMP_WT ) + (MRL * MRL_WT) + (TIME_CRIT * TIME_CRIT_WT))
+    /// HICAT_SCH_SCORE = ((HICAT_SCH_WT)  *  ((SCH_IMP * SCH_IMP_WT) + (FNTL_IMP * FNTL_IMP_WT ) + (MRL * MRL_WT))
     /// </summary>
     public decimal CalculateHighCategoryScheduleScore(FeatureScoreResult input)
     {
-        return (input.HICAT_SCH_WT ?? 0) * ((input.SCH_IMP ?? 0) * (input.SCH_IMP_WT ?? 0)+(input.FNTL_IMP ?? 0) * (input.FNTL_IMP_WT ?? 0) + (input.MRL ?? 0) * (input.MRL_WT ?? 0) + (input.TIME_CRIT ?? 0) * (input.TIME_CRIT_WT ?? 0));
+        return (input.HICAT_SCH_WT ?? 0) * ((input.SCH_IMP ?? 0) * (input.SCH_IMP_WT ?? 0)+(input.FNTL_IMP ?? 0) * (input.FNTL_IMP_WT ?? 0) + (input.MRL ?? 0) * (input.MRL_WT ?? 0));
     }
 
     /// <summary>
     /// Calculates the High Category User Score.
-    /// HICAT_USER_SCORE = ((HICAT_USER_WT) * ((ORI * ORI_WT) + (USER_IMP * USER_IMP_WT ))
+    /// HICAT_USER_SCORE = ((HICAT_USER_WT) * ((ORI * ORI_WT) + (USER_IMP * USER_IMP_WT ) + (TIME_CRIT * TIME_CRIT_WT))
     /// </summary>
     public decimal CalculateHighCategoryUserScore(FeatureScoreResult input)
     {
-        return (input.HICAT_USER_WT ?? 0) * (((input.ORI ?? 0) * (input.ORI_WT ?? 0)) + ((input.USER_IMP ?? 0) * (input.USER_IMP_WT ?? 0)));
+        return (input.HICAT_USER_WT ?? 0) * (((input.ORI ?? 0) * (input.ORI_WT ?? 0)) + ((input.USER_IMP ?? 0) * (input.USER_IMP_WT ?? 0)) + ((input.TIME_CRIT ?? 0) * (input.TIME_CRIT_WT ?? 0)));
     }
     
     
@@ -143,7 +143,6 @@ public class ScoreCalculator
     {
         return (input.HICAT_COST_WT ?? 0) * (
             ((input.COST_IMP ?? 0) * (input.COST_WT ?? 0)) + 
-            ((input.MRL ?? 0) * (input.MRL_WT ?? 0)/8) +
             ((input.TRL ?? 0) * ((input.TRL_WT ?? 0) / 5)) + 
             ((input.TIME_CRIT ?? 0) * (input.TIME_CRIT_WT ?? 0)) + 
             ((input.TECH_IMP ?? 0) * ((input.TECH_WT ?? 0) / 3)) + 
@@ -169,11 +168,11 @@ public class ScoreCalculator
     
     /// <summary>
     /// Calculates the Risk Tolerance Consequence Score.
-    /// RISK_TOL_CONS_SCORE = (INTERD * INTERD_WT) + (SELFDEP * SELFDEP_WT)
+    /// RISK_TOL_CONS_SCORE = (SELFDEP * SELFDEP_WT) + (ORI * ORI_WT) + (USER_IMP * USER_IMP_WT)
     /// </summary>
     public decimal CalculateRiskToleranceConsequenceScore(FeatureScoreResult input)
     {
-        return ((input.INTERD ?? 0) * (input.INTERD_WT ?? 0)) + ((input.SELFDEP ?? 0) * (input.SELFDEP_WT ?? 0));
+        return ((input.SELFDEP ?? 0) * (input.SELFDEP_WT ?? 0)) + ((input.ORI ?? 0) * (input.ORI_WT ?? 0)) + ((input.USER_IMP ?? 0) * (input.USER_IMP_WT ?? 0));
     }
     public decimal CalculateTOTAL_WSM_COST(FeatureScoreResult input)
     {
