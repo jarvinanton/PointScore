@@ -69,21 +69,21 @@ public class ScoreCalculator
     }
     /// <summary>
     /// Calculates the WSM Composite Score based on various high-level scores.
-    /// WSM_COMP_SCORE = (HICAT_TECH_SCORE + HICAT_FNTL_SCORE + HICAT_SCH_SCORE + HICAT_USER_SCORE)
+    /// WSM_COMP_SCORE = (HICAT_TECH_SCORE + HICAT_FNTL_SCORE + HICAT_SCH_SCORE)
     /// </summary>
-    public decimal CalculateWsmCompositeScore(decimal HICAT_TECH_SCORE, decimal HICAT_FNTL_SCORE, decimal HICAT_SCH_SCORE, decimal HICAT_USER_SCORE)
+    public decimal CalculateWsmCompositeScore(decimal HICAT_TECH_SCORE, decimal HICAT_FNTL_SCORE, decimal HICAT_SCH_SCORE)
     {
-        return HICAT_TECH_SCORE + HICAT_FNTL_SCORE + HICAT_SCH_SCORE + HICAT_USER_SCORE;
+        return HICAT_TECH_SCORE + HICAT_FNTL_SCORE + HICAT_SCH_SCORE;
     }
 
     /// <summary>
     /// Calculates the Correlated Cost Score.
     /// COST_CORR_SCORE = (HICAT_COST_SCORE) / (TOTAL_WSM_COST)
     /// </summary>
-    public decimal CalculateCostCorrelatedScore(decimal WSM_COMP_SCORE, FeatureScoreResult input)
+    public decimal CalculateCostCorrelatedScore(decimal HICAT_COST_SCORE, FeatureScoreResult input)
     {
         decimal TOTAL_WSM_COST = CalculateTOTAL_WSM_COST(input);
-        return WSM_COMP_SCORE * TOTAL_WSM_COST / 10000000;
+        return TOTAL_WSM_COST > 0 ? HICAT_COST_SCORE / TOTAL_WSM_COST : 0;
     }
 
     
@@ -490,8 +490,8 @@ public class ScoreCalculator
 
     /// <summary>
     /// Calculates the final Correlated Cost Score (COST_CORR_SCORE) and all category aggregates.
-    /// WSM_COMP_SCORE = Tech + Functional + Schedule + User
-    /// COST_CORR_SCORE = (WSM_COMP_SCORE * TOTAL_WSM_COST) / 10,000,000
+    /// WSM_COMP_SCORE = Tech + Functional + Schedule
+    /// COST_CORR_SCORE = (HICAT_COST_SCORE) / (TOTAL_WSM_COST)
     /// TOTAL_WSM_COST = TOT_PROD_COST * PROD_QTY
     /// Task 577.
     /// </summary>
@@ -513,8 +513,8 @@ public class ScoreCalculator
         dto.ScheduleScore = schedule.TotalHighCategoryScheduleScore;
         dto.CostScore = cost.TotalHighCategoryCostScore;
 
-        // 2. WSM_COMP_SCORE (The formula for correlation uses only the first 4 categories)
-        dto.WsmCompositeScore = dto.TechnicalScore + dto.FunctionalScore + dto.UserScore + dto.ScheduleScore;
+        // 2. WSM_COMP_SCORE (The formula for correlation uses only the first 3 categories)
+        dto.WsmCompositeScore = dto.TechnicalScore + dto.FunctionalScore + dto.ScheduleScore;
 
         // 3. Set TOTAL_WSM_COST
         if (overrideTotalWsmCost.HasValue)
@@ -528,8 +528,8 @@ public class ScoreCalculator
             dto.TotalWsmCost = costAssessment?.TotalWsmCost ?? 0m;
         }
 
-        // 4. COST_CORR_SCORE = (WSM_COMP_SCORE * TOTAL_WSM_COST) / 10,000,000
-        dto.CostCorrelatedScore = Math.Round((dto.WsmCompositeScore * dto.TotalWsmCost) / 10000000m, 4);
+        // 4. COST_CORR_SCORE = (HICAT_COST_SCORE) / (TOTAL_WSM_COST)
+        dto.CostCorrelatedScore = dto.TotalWsmCost > 0 ? Math.Round(dto.CostScore / dto.TotalWsmCost, 4) : 0m;
 
         return dto;
     }
