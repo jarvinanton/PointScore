@@ -92,7 +92,7 @@ public class ScoreCalculator
     /// HICAT_TECH_SCORE = ((HICAT_TECH_WT) * ((ENG_SIA * ENG_SIA_WT) + (TECH_IMP *
     ///                     TECH_WT ) +
     ///                    (TRL * TRL_WT) + (DELIV * DELIV_WT) + ((SRR_PDR_CDR_WT) * ((SRR * SRR_WT) + (PDR *
-    ///                     PDR_WT) + (CDR * CDR_WT))) + ((INTERD * INTERD_WT) + (SELFDEP * SELFDEP_WT))))
+    ///                     PDR_WT) + (CDR * CDR_WT))) + ((INTERD * INTERD_WT) + (SELFDEP + SELFDEP_WT))))
     /// </summary>
     public decimal CalculateHighCategoryTechnicalScore(FeatureScoreResult input)
     {
@@ -102,7 +102,7 @@ public class ScoreCalculator
             ((input.TRL ?? 0) * (input.TRL_WT ?? 0)) + 
             ((input.DELIV ?? 0) * (input.DELIV_WT ?? 0)) + 
             (input.SRR_PDR_CDR_WT ?? 0) * ((input.SRR ?? 0) * (input.SRR_WT ?? 0) + (input.PDR ?? 0) * (input.PDR_WT ?? 0) + (input.CDR ?? 0) * (input.CDR_WT ?? 0)) + 
-            ((input.INTERD ?? 0) * (input.INTERD_WT ?? 0)) + ((input.SELFDEP ?? 0) * (input.SELFDEP_WT ?? 0))
+            ((input.INTERD ?? 0) * (input.INTERD_WT ?? 0)) + ((input.SELFDEP ?? 0) + (input.SELFDEP_WT ?? 0))
         );
     }
     
