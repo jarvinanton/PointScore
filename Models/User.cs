@@ -36,6 +36,11 @@ namespace PointScore.Models
          public virtual ICollection<UserRoleMap> UserRoles { get; set; } = new List<UserRoleMap>();
         // public ICollection<UserRoleMap> Roles { get; set; } = new List<UserRoleMap>();
 
+        public Guid? DesignOwnerId { get; set; }
+
+        [ForeignKey("DesignOwnerId")]
+        public virtual RecommendedDesignOwner? DesignOwner { get; set; }
+
         // ---- Authentication properties ----
         [JsonIgnore]
         public byte[] PasswordHash { get; set; } = [];

@@ -14,7 +14,7 @@ public class CostCorrectionScoreDto
     public decimal CostScore { get; set; }
 
     // Aggregate
-    public decimal WsmCompositeScore { get; set; } // Sum of Tech + Func + User + Sch
+    public decimal WsmCompositeScore { get; set; } // Sum of Tech + Func + Sch
 
     // Costs
     public decimal TotalWsmCost { get; set; }

@@ -62,28 +62,28 @@ public class ScoreCalculator
             throw new KeyNotFoundException($"WSM Request with ID {wsmRequestId} not found.");
 
         if (wsm.BlockId == null)
-            throw new InvalidOperationException("The WSM is not assigned to a block. A block assignment is required to automatically retrieve the Internal Complexity Score (Self-Dependency).");
+            return 0m;
 
         var scoring = await _interfaceService.GetBlockComplexityScoringAsync(wsm.BlockId.Value);
         return scoring.ScoreOutput;
     }
     /// <summary>
     /// Calculates the WSM Composite Score based on various high-level scores.
-    /// WSM_COMP_SCORE = (HICAT_TECH_SCORE + HICAT_FNTL_SCORE + HICAT_SCH_SCORE + HICAT_USER_SCORE)
+    /// WSM_COMP_SCORE = (HICAT_TECH_SCORE + HICAT_FNTL_SCORE + HICAT_SCH_SCORE)
     /// </summary>
-    public decimal CalculateWsmCompositeScore(decimal HICAT_TECH_SCORE, decimal HICAT_FNTL_SCORE, decimal HICAT_SCH_SCORE, decimal HICAT_USER_SCORE)
+    public decimal CalculateWsmCompositeScore(decimal HICAT_TECH_SCORE, decimal HICAT_FNTL_SCORE, decimal HICAT_SCH_SCORE)
     {
-        return HICAT_TECH_SCORE + HICAT_FNTL_SCORE + HICAT_SCH_SCORE + HICAT_USER_SCORE;
+        return HICAT_TECH_SCORE + HICAT_FNTL_SCORE + HICAT_SCH_SCORE;
     }
 
     /// <summary>
     /// Calculates the Correlated Cost Score.
     /// COST_CORR_SCORE = (HICAT_COST_SCORE) / (TOTAL_WSM_COST)
     /// </summary>
-    public decimal CalculateCostCorrelatedScore(decimal WSM_COMP_SCORE, FeatureScoreResult input)
+    public decimal CalculateCostCorrelatedScore(decimal HICAT_COST_SCORE, FeatureScoreResult input)
     {
         decimal TOTAL_WSM_COST = CalculateTOTAL_WSM_COST(input);
-        return WSM_COMP_SCORE * TOTAL_WSM_COST / 10000000;
+        return TOTAL_WSM_COST > 0 ? HICAT_COST_SCORE / TOTAL_WSM_COST : 0;
     }
 
     
@@ -92,7 +92,7 @@ public class ScoreCalculator
     /// HICAT_TECH_SCORE = ((HICAT_TECH_WT) * ((ENG_SIA * ENG_SIA_WT) + (TECH_IMP *
     ///                     TECH_WT ) +
     ///                    (TRL * TRL_WT) + (DELIV * DELIV_WT) + ((SRR_PDR_CDR_WT) * ((SRR * SRR_WT) + (PDR *
-    ///                     PDR_WT) + (CDR * CDR_WT))) + ((INTERD * INTERD_WT) + (SELFDEP * SELFDEP_WT))))
+    ///                     PDR_WT) + (CDR * CDR_WT))) + ((INTERD * INTERD_WT) + (SELFDEP + SELFDEP_WT))))
     /// </summary>
     public decimal CalculateHighCategoryTechnicalScore(FeatureScoreResult input)
     {
@@ -102,7 +102,7 @@ public class ScoreCalculator
             ((input.TRL ?? 0) * (input.TRL_WT ?? 0)) + 
             ((input.DELIV ?? 0) * (input.DELIV_WT ?? 0)) + 
             (input.SRR_PDR_CDR_WT ?? 0) * ((input.SRR ?? 0) * (input.SRR_WT ?? 0) + (input.PDR ?? 0) * (input.PDR_WT ?? 0) + (input.CDR ?? 0) * (input.CDR_WT ?? 0)) + 
-            ((input.INTERD ?? 0) * (input.INTERD_WT ?? 0)) + ((input.SELFDEP ?? 0) * (input.SELFDEP_WT ?? 0))
+            ((input.INTERD ?? 0) * (input.INTERD_WT ?? 0)) + ((input.SELFDEP ?? 0) + (input.SELFDEP_WT ?? 0))
         );
     }
     
@@ -117,20 +117,20 @@ public class ScoreCalculator
 
     /// <summary>
     /// Calculates the High Category Schedule Score.
-    /// HICAT_SCH_SCORE = ((HICAT_SCH_WT)  *  ((SCH_IMP * SCH_IMP_WT) + (FNTL_IMP * FNTL_IMP_WT ) + (MRL * MRL_WT) + (TIME_CRIT * TIME_CRIT_WT))
+    /// HICAT_SCH_SCORE = ((HICAT_SCH_WT)  *  ((SCH_IMP * SCH_IMP_WT) + (FNTL_IMP * FNTL_IMP_WT ) + (MRL * MRL_WT))
     /// </summary>
     public decimal CalculateHighCategoryScheduleScore(FeatureScoreResult input)
     {
-        return (input.HICAT_SCH_WT ?? 0) * ((input.SCH_IMP ?? 0) * (input.SCH_IMP_WT ?? 0)+(input.FNTL_IMP ?? 0) * (input.FNTL_IMP_WT ?? 0) + (input.MRL ?? 0) * (input.MRL_WT ?? 0) + (input.TIME_CRIT ?? 0) * (input.TIME_CRIT_WT ?? 0));
+        return (input.HICAT_SCH_WT ?? 0) * ((input.SCH_IMP ?? 0) * (input.SCH_IMP_WT ?? 0)+(input.FNTL_IMP ?? 0) * (input.FNTL_IMP_WT ?? 0) + (input.MRL ?? 0) * (input.MRL_WT ?? 0));
     }
 
     /// <summary>
     /// Calculates the High Category User Score.
-    /// HICAT_USER_SCORE = ((HICAT_USER_WT) * ((ORI * ORI_WT) + (USER_IMP * USER_IMP_WT ))
+    /// HICAT_USER_SCORE = ((HICAT_USER_WT) * ((ORI * ORI_WT) + (USER_IMP * USER_IMP_WT ) + (TIME_CRIT * TIME_CRIT_WT))
     /// </summary>
     public decimal CalculateHighCategoryUserScore(FeatureScoreResult input)
     {
-        return (input.HICAT_USER_WT ?? 0) * (((input.ORI ?? 0) * (input.ORI_WT ?? 0)) + ((input.USER_IMP ?? 0) * (input.USER_IMP_WT ?? 0)));
+        return (input.HICAT_USER_WT ?? 0) * (((input.ORI ?? 0) * (input.ORI_WT ?? 0)) + ((input.USER_IMP ?? 0) * (input.USER_IMP_WT ?? 0)) + ((input.TIME_CRIT ?? 0) * (input.TIME_CRIT_WT ?? 0)));
     }
     
     
@@ -143,7 +143,6 @@ public class ScoreCalculator
     {
         return (input.HICAT_COST_WT ?? 0) * (
             ((input.COST_IMP ?? 0) * (input.COST_WT ?? 0)) + 
-            ((input.MRL ?? 0) * (input.MRL_WT ?? 0)/8) +
             ((input.TRL ?? 0) * ((input.TRL_WT ?? 0) / 5)) + 
             ((input.TIME_CRIT ?? 0) * (input.TIME_CRIT_WT ?? 0)) + 
             ((input.TECH_IMP ?? 0) * ((input.TECH_WT ?? 0) / 3)) + 
@@ -169,11 +168,11 @@ public class ScoreCalculator
     
     /// <summary>
     /// Calculates the Risk Tolerance Consequence Score.
-    /// RISK_TOL_CONS_SCORE = (INTERD * INTERD_WT) + (SELFDEP * SELFDEP_WT)
+    /// RISK_TOL_CONS_SCORE = (SELFDEP * SELFDEP_WT) + (ORI * ORI_WT) + (USER_IMP * USER_IMP_WT)
     /// </summary>
     public decimal CalculateRiskToleranceConsequenceScore(FeatureScoreResult input)
     {
-        return ((input.INTERD ?? 0) * (input.INTERD_WT ?? 0)) + ((input.SELFDEP ?? 0) * (input.SELFDEP_WT ?? 0));
+        return ((input.SELFDEP ?? 0) * (input.SELFDEP_WT ?? 0)) + ((input.ORI ?? 0) * (input.ORI_WT ?? 0)) + ((input.USER_IMP ?? 0) * (input.USER_IMP_WT ?? 0));
     }
     public decimal CalculateTOTAL_WSM_COST(FeatureScoreResult input)
     {
@@ -490,8 +489,8 @@ public class ScoreCalculator
 
     /// <summary>
     /// Calculates the final Correlated Cost Score (COST_CORR_SCORE) and all category aggregates.
-    /// WSM_COMP_SCORE = Tech + Functional + Schedule + User
-    /// COST_CORR_SCORE = (WSM_COMP_SCORE * TOTAL_WSM_COST) / 10,000,000
+    /// WSM_COMP_SCORE = Tech + Functional + Schedule
+    /// COST_CORR_SCORE = (HICAT_COST_SCORE) / (TOTAL_WSM_COST)
     /// TOTAL_WSM_COST = TOT_PROD_COST * PROD_QTY
     /// Task 577.
     /// </summary>
@@ -513,8 +512,8 @@ public class ScoreCalculator
         dto.ScheduleScore = schedule.TotalHighCategoryScheduleScore;
         dto.CostScore = cost.TotalHighCategoryCostScore;
 
-        // 2. WSM_COMP_SCORE (The formula for correlation uses only the first 4 categories)
-        dto.WsmCompositeScore = dto.TechnicalScore + dto.FunctionalScore + dto.UserScore + dto.ScheduleScore;
+        // 2. WSM_COMP_SCORE (The formula for correlation uses only the first 3 categories)
+        dto.WsmCompositeScore = dto.TechnicalScore + dto.FunctionalScore + dto.ScheduleScore;
 
         // 3. Set TOTAL_WSM_COST
         if (overrideTotalWsmCost.HasValue)
@@ -528,8 +527,8 @@ public class ScoreCalculator
             dto.TotalWsmCost = costAssessment?.TotalWsmCost ?? 0m;
         }
 
-        // 4. COST_CORR_SCORE = (WSM_COMP_SCORE * TOTAL_WSM_COST) / 10,000,000
-        dto.CostCorrelatedScore = Math.Round((dto.WsmCompositeScore * dto.TotalWsmCost) / 10000000m, 4);
+        // 4. COST_CORR_SCORE = (HICAT_COST_SCORE) / (TOTAL_WSM_COST)
+        dto.CostCorrelatedScore = dto.TotalWsmCost > 0 ? Math.Round(dto.CostScore / dto.TotalWsmCost, 4) : 0m;
 
         return dto;
     }

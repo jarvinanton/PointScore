@@ -38,19 +38,21 @@ namespace PointScore.Models
         public string? ImplementationFollowOnComments { get; set; }
         public Guid? RecommendedDesignOwnerId { get; set; }
         public virtual RecommendedDesignOwner? RecommendedDesignOwner { get; set; }    
+        public Guid? ApprovedDesignOwnerId { get; set; }
+        [ForeignKey("ApprovedDesignOwnerId")]
+        public virtual RecommendedDesignOwner? ApprovedDesignOwner { get; set; }
+        public virtual ICollection<WsmDesignOwnerAssignment> DesignOwnerAssignments { get; set; } = new List<WsmDesignOwnerAssignment>();
         public string? ImplementationNumber { get; set; }
 
         public DateTime? AssignedDate { get; set; }
 
         // FKs
         public Guid OriginatorInfoId { get; set; }
-        public Guid? WsmOwnerId { get; set; }
         public Guid? WsmOwnerUserId { get; set; }
         public int ModificationTypeId { get; set; }
 
         // Navegación
         public OriginatorInfo Originator { get; set; } = null!;
-        public WsmOwner? WsmOwner { get; set; }
         public ModificationType ModificationType { get; set; } = null!;
         public ApprovalWorkflow ApprovalWorkflow { get; set; } = null!;
         public ImpactAnalysis? ImpactAnalysis { get; set; }

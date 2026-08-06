@@ -24,7 +24,6 @@ namespace PointScore.Models
 
 
     // Navegación
-	public ICollection<WsmRequest> OwnedWsmRequests { get; set; } = new List<WsmRequest>();
 	// public ICollection<WsmRequest> BlockOwnedRequests { get; set; } = new List<WsmRequest>();
     }
 }

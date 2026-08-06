@@ -20,5 +20,9 @@ public enum UserRole
     IPTFinance,
     IPTProgramManagement,
     IPTSecurity,
-    BasicUser
+    BasicUser,
+    DesignOwner,
+    AcquisitionManager,
+    SafetyOfficer,
+    Vendor
 }
