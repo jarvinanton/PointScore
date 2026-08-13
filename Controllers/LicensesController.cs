@@ -42,6 +42,26 @@ namespace PointScore.Controllers
         {
             if (request == null) return BadRequest("Invalid request payload.");
 
+            if (string.IsNullOrWhiteSpace(request.Key) || request.Key.Length < 10)
+                return BadRequest("License key must be at least 10 characters.");
+
+            var keyExists = await _db.Licenses.AnyAsync(l => l.Key == request.Key);
+            if (keyExists)
+                return Conflict(new { message = "A license with this key already exists." });
+
+            if (request.UserId.HasValue)
+            {
+                var hasActiveLicense = await _db.Licenses
+                    .AnyAsync(l => l.UserId == request.UserId.Value && l.Status == "Active");
+                if (hasActiveLicense)
+                    return Conflict(new { message = "This user already has an active license." });
+
+                var sameExpirationExists = await _db.Licenses
+                    .AnyAsync(l => l.UserId == request.UserId.Value && l.Expiration == request.Expiration);
+                if (sameExpirationExists)
+                    return Conflict(new { message = "This user already has a license with the same expiration date." });
+            }
+
             var license = new License
             {
                 Key = request.Key,
