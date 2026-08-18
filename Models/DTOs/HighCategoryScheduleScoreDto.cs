@@ -18,10 +18,10 @@ public class HighCategoryScheduleScoreDto
     public decimal ManufacturingReadinessLevel_Score { get; set; }
 
     /// <summary>
-    /// Time Criticality Score.
-    /// Retrieved from the WsmTimeCriticalityAssessment model.
+    /// System Impact Assessment - Functional Level Impact (FNTL_IMP).
+    /// Score from detailed SIA responses for functional areas.
     /// </summary>
-    public decimal TimeCriticality_Score { get; set; }
+    public decimal FntL_Imp_Score { get; set; }
 
     /// <summary>
     /// Final High Category Schedule Score after applying weights and the category weight (20%).

@@ -789,12 +789,53 @@ namespace PointScore.Data
             modelBuilder.Entity<ScoringFormulaWeights>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                
-                entity.Property(e => e.TechnicalWeight).HasPrecision(5, 2).IsRequired();
-                entity.Property(e => e.FunctionalWeight).HasPrecision(5, 2).IsRequired();
-                entity.Property(e => e.ScheduleWeight).HasPrecision(5, 2).IsRequired();
-                entity.Property(e => e.UserImpactWeight).HasPrecision(5, 2).IsRequired();
-                entity.Property(e => e.CostWeight).HasPrecision(5, 2).IsRequired();
+
+                // Top-level
+                entity.Property(e => e.TechnicalWeight).HasPrecision(18, 2).IsRequired();
+                entity.Property(e => e.FunctionalWeight).HasPrecision(18, 2).IsRequired();
+                entity.Property(e => e.ScheduleWeight).HasPrecision(18, 2).IsRequired();
+                entity.Property(e => e.UserImpactWeight).HasPrecision(18, 2).IsRequired();
+                entity.Property(e => e.CostWeight).HasPrecision(18, 2).IsRequired();
+
+                // Technical sub-weights
+                entity.Property(e => e.Tech_ENG_SIA_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Tech_TECH_IMP_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Tech_TRL_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Tech_DELIV_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Tech_SRR_PDR_CDR_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Tech_INTERD_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Tech_SELFDEP_WT).HasPrecision(18, 2);
+
+                // Functional sub-weights
+                entity.Property(e => e.FntL_SIA_WT).HasPrecision(18, 2);
+                entity.Property(e => e.FntL_IMP_WT).HasPrecision(18, 2);
+
+                // User sub-weights
+                entity.Property(e => e.User_ORI_WT).HasPrecision(18, 2);
+                entity.Property(e => e.User_USER_IMP_WT).HasPrecision(18, 2);
+                entity.Property(e => e.User_TIME_CRIT_WT).HasPrecision(18, 2);
+
+                // Schedule sub-weights
+                entity.Property(e => e.Sch_SCH_IMP_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Sch_MRL_WT).HasPrecision(18, 2);
+
+                // Cost sub-weights
+                entity.Property(e => e.Cost_SIA_TECH_ECP_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Cost_TRL_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Cost_TECH_IMP_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Cost_DELIV_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Cost_MRL_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Cost_SRR_PDR_CDR_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Cost_INTERD_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Cost_SELFDEP_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Cost_TIME_CRIT_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Cost_SIA_COST_ECP_WT).HasPrecision(18, 2);
+
+                // Milestone weights
+                entity.Property(e => e.Milestone_SRR_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Milestone_PDR_WT).HasPrecision(18, 2);
+                entity.Property(e => e.Milestone_CDR_WT).HasPrecision(18, 2);
+
                 entity.Property(e => e.IsActive).IsRequired();
                 
                 entity.HasOne(e => e.UpdatedByUser)
@@ -802,18 +843,45 @@ namespace PointScore.Data
                     .HasForeignKey(e => e.UpdatedBy)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                // Seed default weights
+                // Seed default weights (client-verified values)
                 entity.HasData(new ScoringFormulaWeights
                 {
                     Id = 1,
-                    TechnicalWeight = 15.00m,
-                    FunctionalWeight = 15.00m,
-                    ScheduleWeight = 20.00m,
-                    UserImpactWeight = 50.00m,
+                    TechnicalWeight = 40.00m,
+                    FunctionalWeight = 30.00m,
+                    ScheduleWeight = 30.00m,
+                    UserImpactWeight = 100.00m,
                     CostWeight = 75.00m,
+                    Tech_ENG_SIA_WT = 5.00m,
+                    Tech_TECH_IMP_WT = 15.00m,
+                    Tech_TRL_WT = 25.00m,
+                    Tech_DELIV_WT = 10.00m,
+                    Tech_SRR_PDR_CDR_WT = 10.00m,
+                    Tech_INTERD_WT = 10.00m,
+                    Tech_SELFDEP_WT = 25.00m,
+                    FntL_SIA_WT = 30.00m,
+                    FntL_IMP_WT = 70.00m,
+                    User_ORI_WT = 25.00m,
+                    User_USER_IMP_WT = 40.00m,
+                    User_TIME_CRIT_WT = 35.00m,
+                    Sch_SCH_IMP_WT = 60.00m,
+                    Sch_MRL_WT = 40.00m,
+                    Cost_SIA_TECH_ECP_WT = 5.00m,
+                    Cost_TRL_WT = 5.00m,
+                    Cost_TECH_IMP_WT = 5.00m,
+                    Cost_DELIV_WT = 15.00m,
+                    Cost_MRL_WT = 5.00m,
+                    Cost_SRR_PDR_CDR_WT = 15.00m,
+                    Cost_INTERD_WT = 10.00m,
+                    Cost_SELFDEP_WT = 5.00m,
+                    Cost_TIME_CRIT_WT = 10.00m,
+                    Cost_SIA_COST_ECP_WT = 30.00m,
+                    Milestone_SRR_WT = 25.00m,
+                    Milestone_PDR_WT = 35.00m,
+                    Milestone_CDR_WT = 40.00m,
                     IsActive = true,
                     UpdatedAt = DateTime.UtcNow,
-                    Comments = "Initial default scoring weights"
+                    Comments = "Client-verified default scoring weights"
                 });
             });
 

@@ -21,4 +21,7 @@ public class CostCorrectionScoreDto
 
     // Final result
     public decimal CostCorrelatedScore { get; set; }
+
+    // Priority
+    public decimal FinalPriorityScore { get; set; }
 }

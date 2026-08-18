@@ -49,6 +49,56 @@ public class ScoreCalculator
     }
 
     /// <summary>
+    /// Gets the active scoring weights from the database.
+    /// Falls back to hardcoded defaults if no active weights are configured.
+    /// </summary>
+    private async Task<ScoringFormulaWeights> GetActiveScoringWeightsAsync()
+    {
+        var weights = await _context.ScoringFormulaWeights
+            .AsNoTracking()
+            .Where(w => w.IsActive)
+            .OrderByDescending(w => w.UpdatedAt)
+            .FirstOrDefaultAsync();
+
+        weights ??= new ScoringFormulaWeights
+        {
+            TechnicalWeight = 40.00m,
+            FunctionalWeight = 30.00m,
+            ScheduleWeight = 30.00m,
+            UserImpactWeight = 100.00m,
+            CostWeight = 75.00m,
+            Tech_ENG_SIA_WT = 5.00m,
+            Tech_TECH_IMP_WT = 15.00m,
+            Tech_TRL_WT = 25.00m,
+            Tech_DELIV_WT = 10.00m,
+            Tech_SRR_PDR_CDR_WT = 10.00m,
+            Tech_INTERD_WT = 10.00m,
+            Tech_SELFDEP_WT = 25.00m,
+            FntL_SIA_WT = 30.00m,
+            FntL_IMP_WT = 70.00m,
+            User_ORI_WT = 25.00m,
+            User_USER_IMP_WT = 40.00m,
+            User_TIME_CRIT_WT = 35.00m,
+            Sch_SCH_IMP_WT = 60.00m,
+            Sch_MRL_WT = 40.00m,
+            Cost_SIA_TECH_ECP_WT = 5.00m,
+            Cost_TRL_WT = 5.00m,
+            Cost_TECH_IMP_WT = 5.00m,
+            Cost_DELIV_WT = 15.00m,
+            Cost_MRL_WT = 5.00m,
+            Cost_SRR_PDR_CDR_WT = 15.00m,
+            Cost_INTERD_WT = 10.00m,
+            Cost_SELFDEP_WT = 5.00m,
+            Cost_TIME_CRIT_WT = 10.00m,
+            Cost_SIA_COST_ECP_WT = 30.00m,
+            Milestone_SRR_WT = 25.00m,
+            Milestone_PDR_WT = 35.00m,
+            Milestone_CDR_WT = 40.00m
+        };
+
+        return weights;
+    }
+    /// <summary>
     /// Helper to resolve the Self-Dependency score (Internal Complexity) for a WSM.
     /// Returns the ScoreOutput from the related block's complexity assessment.
     /// </summary>
@@ -102,7 +152,7 @@ public class ScoreCalculator
             ((input.TRL ?? 0) * (input.TRL_WT ?? 0)) + 
             ((input.DELIV ?? 0) * (input.DELIV_WT ?? 0)) + 
             (input.SRR_PDR_CDR_WT ?? 0) * ((input.SRR ?? 0) * (input.SRR_WT ?? 0) + (input.PDR ?? 0) * (input.PDR_WT ?? 0) + (input.CDR ?? 0) * (input.CDR_WT ?? 0)) + 
-            ((input.INTERD ?? 0) * (input.INTERD_WT ?? 0)) + ((input.SELFDEP ?? 0) + (input.SELFDEP_WT ?? 0))
+            ((input.INTERD ?? 0) * (input.INTERD_WT ?? 0)) + ((input.SELFDEP ?? 0) * (input.SELFDEP_WT ?? 0))
         );
     }
     
@@ -271,22 +321,30 @@ public class ScoreCalculator
         // 7. SELFDEP — from block-level internal complexity scoring
         dto.SELFDEP_Score = selfdepValue;
 
-        // Aggregate with sub-weights for SRR, PDR, CDR combined into SRR_PDR_CDR component
-        decimal srrPdrCdrScore = (dto.SRR_Score * 0.25m) + (dto.PDR_Score * 0.35m) + (dto.CDR_Score * 0.40m);
+        // Load active scoring weights from database
+        var weights = await GetActiveScoringWeightsAsync();
 
-        // Overall combination according to constant weights
-        // sub-Weights: ENG_SIA (5%), TECH_IMP (15%), TRL (25%), DELIV (10%), SRR_PDR_CDR (25%), INTERD (10%), SELFDEP (10%)
+        // Aggregate SRR, PDR, CDR using milestone weights
+        decimal srrPdrCdrScore = 
+            (dto.SRR_Score * (weights.Milestone_SRR_WT / 100m)) + 
+            (dto.PDR_Score * (weights.Milestone_PDR_WT / 100m)) + 
+            (dto.CDR_Score * (weights.Milestone_CDR_WT / 100m));
+
+        // Overall combination using configurable weights from ScoringFormulaWeights
+        // Formula: HICAT_TECH_WT * (ENG_SIA*ENG_SIA_WT + TECH_IMP*TECH_WT + TRL*TRL_WT +
+        //          DELIV*DELIV_WT + SRR_PDR_CDR_WT*(SRR*SRR_WT+PDR*PDR_WT+CDR*CDR_WT) +
+        //          INTERD*INTERD_WT + SELFDEP*SELFDEP_WT)
         decimal rawTotalScore = 
-            (dto.ENG_SIA_Score * 0.05m) +
-            (dto.TECH_IMP_Score * 0.15m) +
-            (dto.TRL_Score * 0.25m) +
-            (dto.DELIV_Score * 0.10m) +
-            (srrPdrCdrScore * 0.25m) +
-            (dto.INTERD_Score * 0.10m) +
-            (dto.SELFDEP_Score * 0.10m);
+            (dto.ENG_SIA_Score * (weights.Tech_ENG_SIA_WT / 100m)) +
+            (dto.TECH_IMP_Score * (weights.Tech_TECH_IMP_WT / 100m)) +
+            (dto.TRL_Score * (weights.Tech_TRL_WT / 100m)) +
+            (dto.DELIV_Score * (weights.Tech_DELIV_WT / 100m)) +
+            (srrPdrCdrScore * (weights.Tech_SRR_PDR_CDR_WT / 100m)) +
+            (dto.INTERD_Score * (weights.Tech_INTERD_WT / 100m)) +
+            (dto.SELFDEP_Score * (weights.Tech_SELFDEP_WT / 100m));
 
-        // Apply constant overall weight of 15% (0.15) for High Category Technical Score
-        dto.TotalHighCategoryTechnicalScore = Math.Round(rawTotalScore * 0.15m, 2);
+        // Apply configurable overall weight for High Category Technical Score
+        dto.TotalHighCategoryTechnicalScore = Math.Round(rawTotalScore * (weights.TechnicalWeight / 100m), 2);
 
         return dto;
     }
@@ -321,14 +379,16 @@ public class ScoreCalculator
 
         dto.FNTL_IMP_Score = maxWeightsTotal > 0 ? (actualCostScore / maxWeightsTotal) * 10m : 0m;
 
-        // Overall combination according to constant weights
-        // sub-Weights: FNTL_SIA (30%), FNTL_IMP (70%)
-        decimal rawTotalScore = 
-            (dto.FNTL_SIA_Score * 0.30m) +
-            (dto.FNTL_IMP_Score * 0.70m);
+        // Load active scoring weights from database
+        var weights = await GetActiveScoringWeightsAsync();
 
-        // Apply constant overall weight of 15% (0.15) for High Category Functional Work Score
-        dto.TotalHighCategoryFunctionalScore = Math.Round(rawTotalScore * 0.15m, 2);
+        // Overall combination using configurable weights
+        decimal rawTotalScore = 
+            (dto.FNTL_SIA_Score * (weights.FntL_SIA_WT / 100m)) +
+            (dto.FNTL_IMP_Score * (weights.FntL_IMP_WT / 100m));
+
+        // Apply configurable overall weight for High Category Functional Work Score
+        dto.TotalHighCategoryFunctionalScore = Math.Round(rawTotalScore * (weights.FunctionalWeight / 100m), 2);
 
         return dto;
     }
@@ -346,18 +406,26 @@ public class ScoreCalculator
         var oriAssessment = await _context.WsmOriAssessments.FirstOrDefaultAsync(o => o.WsmRequestId == wsmRequestId);
         dto.OperationalReadinessImpact_Score = (decimal)(oriAssessment?.Score ?? 0);
 
-        // 2. User Mission Impact -> From WsmMissionImpactAssessment (Task 511)
+        // 2. User Mission Impact -> From WsmMissionImpactAssessment
         var missionImpactAssessment = await _context.WsmMissionImpactAssessments.FirstOrDefaultAsync(m => m.WsmRequestId == wsmRequestId);
         dto.UserMissionImpact_Score = (decimal)(missionImpactAssessment?.Score ?? 0);
 
-        // Overall combination according to constant weights
-        // sub-Weights: ORI (50%), Mission Impact (50%)
-        decimal rawTotalScore = 
-            (dto.OperationalReadinessImpact_Score * 0.50m) +
-            (dto.UserMissionImpact_Score * 0.50m);
+        // 3. Time Criticality -> From WsmTimeCriticalityAssessment
+        var timeCritAssessment = await _context.WsmTimeCriticalityAssessments.FirstOrDefaultAsync(t => t.WsmRequestId == wsmRequestId);
+        dto.TimeCriticality_Score = (decimal)(timeCritAssessment?.Score ?? 0);
 
-        // Apply constant overall weight of 50% (0.50) for High Category User Score
-        dto.TotalHighCategoryUserScore = Math.Round(rawTotalScore * 0.50m, 2);
+        // Load active scoring weights from database
+        var weights = await GetActiveScoringWeightsAsync();
+
+        // Overall combination using configurable weights
+        // Formula: HICAT_USER_WT * (ORI*ORI_WT + USER_IMP*USER_IMP_WT + TIME_CRIT*TIME_CRIT_WT)
+        decimal rawTotalScore = 
+            (dto.OperationalReadinessImpact_Score * (weights.User_ORI_WT / 100m)) +
+            (dto.UserMissionImpact_Score * (weights.User_USER_IMP_WT / 100m)) +
+            (dto.TimeCriticality_Score * (weights.User_TIME_CRIT_WT / 100m));
+
+        // Apply configurable overall weight for High Category User Score
+        dto.TotalHighCategoryUserScore = Math.Round(rawTotalScore * (weights.UserImpactWeight / 100m), 2);
 
         return dto;
     }
@@ -376,26 +444,50 @@ public class ScoreCalculator
         dto.SiaTechDetailEcp_Score = (decimal)siaSummary.TotalWsmScheduleScore / 10m;
 
         // 2. Manufacturing Readiness Level (MRL) -> (280 - score) / 280 * 10
-        var mrlScoreTotal = await _context.MRLResponses
-            .Where(m => m.WsmRequestId == wsmRequestId)
-            .SumAsync(m => m.Score);
-        
-        // 280 is the constant representing the total possible MRL sub-thread score
-        dto.ManufacturingReadinessLevel_Score = (280m - (decimal)mrlScoreTotal) / 280m * 10m;
+        var hasMrlResponses = await _context.MRLResponses
+            .AnyAsync(m => m.WsmRequestId == wsmRequestId);
 
-        // 3. Time Criticality -> From WsmTimeCriticalityAssessment
-        var timeCritAssessment = await _context.WsmTimeCriticalityAssessments.FirstOrDefaultAsync(t => t.WsmRequestId == wsmRequestId);
-        dto.TimeCriticality_Score = (decimal)(timeCritAssessment?.Score ?? 0);
+        if (hasMrlResponses)
+        {
+            var mrlScoreTotal = await _context.MRLResponses
+                .Where(m => m.WsmRequestId == wsmRequestId)
+                .SumAsync(m => m.Score);
+            dto.ManufacturingReadinessLevel_Score = (280m - (decimal)mrlScoreTotal) / 280m * 10m;
+        }
+        else
+        {
+            dto.ManufacturingReadinessLevel_Score = 0m;
+        }
 
-        // Overall combination according to constant weights
-        // sub-Weights: SIA (40%), MRL (40%), Time Criticality (20%)
+        // 3. FNTL_IMP (System Impact Assessment for Functional areas)
+        // Restricted to specific areas per client formula
+        var allowedAreas = new[] { "Software", "Cyber", "Quality", "Safety", "Systems Engineering" };
+
+        var actualCostScore = await _context.WsmDetailedSiaResponses
+            .Include(r => r.Section)
+            .ThenInclude(s => s.FunctionalArea)
+            .Where(r => r.WsmRequestId == wsmRequestId && r.IsImpacted == true && allowedAreas.Contains(r.Section.FunctionalArea.Name))
+            .SumAsync(r => r.Section.FunctionalArea.Weight);
+
+        var maxWeightsTotal = await _context.DetailedSiaSections
+            .Include(s => s.FunctionalArea)
+            .Where(s => s.IsActive && allowedAreas.Contains(s.FunctionalArea.Name))
+            .SumAsync(s => s.FunctionalArea.Weight);
+
+        dto.FntL_Imp_Score = maxWeightsTotal > 0 ? (actualCostScore / maxWeightsTotal) * 10m : 0m;
+
+        // Load active scoring weights from database
+        var weights = await GetActiveScoringWeightsAsync();
+
+        // Overall combination using configurable weights
+        // Formula: HICAT_SCH_WT * (SCH_IMP*SCH_IMP_WT + FNTL_IMP*FNTL_IMP_WT + MRL*MRL_WT)
         decimal rawTotalScore = 
-            (dto.SiaTechDetailEcp_Score * 0.40m) +
-            (dto.ManufacturingReadinessLevel_Score * 0.40m) +
-            (dto.TimeCriticality_Score * 0.20m);
+            (dto.SiaTechDetailEcp_Score * (weights.Sch_SCH_IMP_WT / 100m)) +
+            (dto.FntL_Imp_Score * (weights.FntL_IMP_WT / 100m)) +
+            (dto.ManufacturingReadinessLevel_Score * (weights.Sch_MRL_WT / 100m));
 
-        // Apply constant overall weight of 20% (0.20) for High Category Schedule Score
-        dto.TotalHighCategoryScheduleScore = Math.Round(rawTotalScore * 0.20m, 2);
+        // Apply configurable overall weight for High Category Schedule Score
+        dto.TotalHighCategoryScheduleScore = Math.Round(rawTotalScore * (weights.ScheduleWeight / 100m), 2);
 
         return dto;
     }
@@ -410,15 +502,15 @@ public class ScoreCalculator
         var dto = new HighCategoryCostScoreDto();
         decimal selfdepValue = await GetSelfDependencyScoreAsync(wsmRequestId);
 
-        // 1. SIA Tech Detail ECP (5%) -> NE_Score (from WsmSiaScores)
+        // 1. COST_IMP (SIA Tech Detail ECP) -> NE_Score (from WsmSiaScores)
         var siaScore = await _context.WsmSiaScores.FirstOrDefaultAsync(s => s.WsmRequestId == wsmRequestId);
         dto.SiaTechDetailEcp_Score = siaScore?.NE_Score ?? 0m;
 
-        // 2. TRL (5%) -> From TRL_levels
+        // 2. TRL -> From TRL_levels
         var trl = await _context.TRL_levels.FirstOrDefaultAsync(t => t.WsmRequestId == wsmRequestId);
         dto.TRL_Score = trl?.Score ?? 0m;
 
-        // 3. Deliverables (15%) -> Sum of applicable WSM scores
+        // 3. Deliverables -> Sum of applicable WSM scores
         var assignedDeliverableCodes = await _context.WsmDeliverables
             .Include(d => d.Deliverable)
             .Where(d => d.WsmRequestId == wsmRequestId)
@@ -429,60 +521,88 @@ public class ScoreCalculator
             .Where(d => assignedDeliverableCodes.Contains(d.DIDNumber) && d.IsApplicableWSM)
             .Sum(d => d.ApplicableWSMScore ?? 0m);
 
-        // 4. MRL (5%) -> (280 - score) / 280 * 10
-        var mrlScoreTotal = await _context.MRLResponses
-            .Where(m => m.WsmRequestId == wsmRequestId)
-            .SumAsync(m => m.Score);
-        dto.ManufacturingReadinessLevel_Score = (280m - (decimal)mrlScoreTotal) / 280m * 10m;
+        // 4. MRL -> (280 - score) / 280 * 10
+        var hasMrlResponses = await _context.MRLResponses
+            .AnyAsync(m => m.WsmRequestId == wsmRequestId);
+        if (hasMrlResponses)
+        {
+            var mrlScoreTotal = await _context.MRLResponses
+                .Where(m => m.WsmRequestId == wsmRequestId)
+                .SumAsync(m => m.Score);
+            dto.ManufacturingReadinessLevel_Score = (280m - (decimal)mrlScoreTotal) / 280m * 10m;
+        }
+        else
+        {
+            dto.ManufacturingReadinessLevel_Score = 0m;
+        }
 
-        // 5. SRR / PDR / CDR (15%) -> Weighted sum: SRR (25%), PDR (35%), CDR (40%)
+        // 5. SRR / PDR / CDR
         var milestones = await _context.WsmMilestoneScores
             .Where(m => m.WsmRequestId == wsmRequestId)
             .ToListAsync();
         decimal srrScore = milestones.FirstOrDefault(m => m.MilestoneType == "SRR")?.FinalScore ?? 0m;
         decimal pdrScore = milestones.FirstOrDefault(m => m.MilestoneType == "PDR")?.FinalScore ?? 0m;
         decimal cdrScore = milestones.FirstOrDefault(m => m.MilestoneType == "CDR")?.FinalScore ?? 0m;
-        dto.SrrPdrCdr_Score = (srrScore * 0.25m) + (pdrScore * 0.35m) + (cdrScore * 0.40m);
 
-        // 6. Interdependency Interop (10%) -> Formula (280 - MRL_Total) / 280 * 10
-        dto.InterdependencyInterop_Score = dto.ManufacturingReadinessLevel_Score;
+        // 6. Interdependency Interop (INTERD) — from block-level interdependency scoring
+        dto.InterdependencyInterop_Score = await GetInterdependencyScoreAsync(wsmRequestId);
 
-        // 7. Interdependency Self (5%) -> Automated from block complexity
+        // 7. Interdependency Self (SELFDEP) -> Automated from block complexity
         dto.InterdependencySelf_Score = selfdepValue;
 
-        // 8. Time Criticality (10%) -> From WsmTimeCriticalityAssessment
+        // 8. Time Criticality (TIME_CRIT) -> From WsmTimeCriticalityAssessment
         var timeCritAssessment = await _context.WsmTimeCriticalityAssessments.FirstOrDefaultAsync(t => t.WsmRequestId == wsmRequestId);
         dto.TimeCriticality_Score = (decimal)(timeCritAssessment?.Score ?? 0);
 
-        // 9. SIA COST Detail ECP (30%) -> Actual Cost / Max Weight * 10
-        // (Summatory of ALL areas confirmed by user)
-        var actualCostScore = await _context.WsmDetailedSiaResponses
+        // 9. TECH_IMP (System Impact Assessment for Cost) -> All impacted areas / max * 10
+        var actualTechImpactScore = await _context.WsmDetailedSiaResponses
             .Include(r => r.Section)
             .ThenInclude(s => s.FunctionalArea)
             .Where(r => r.WsmRequestId == wsmRequestId && r.IsImpacted == true)
             .SumAsync(r => r.Section.FunctionalArea.Weight);
 
-        var maxWeightsTotal = await _context.DetailedSiaSections
+        var maxTechImpactTotal = await _context.DetailedSiaSections
             .Include(s => s.FunctionalArea)
             .Where(s => s.IsActive)
             .SumAsync(s => s.FunctionalArea.Weight);
 
-        dto.SiaCostDetailEcp_Score = maxWeightsTotal > 0 ? (actualCostScore / maxWeightsTotal) * 10m : 0m;
+        dto.Tech_Impact_Score = maxTechImpactTotal > 0 ? (actualTechImpactScore / maxTechImpactTotal) * 10m : 0m;
 
-        // Overall combination
+        // 10. SIA COST Detail ECP (SiaCostDetailEcp) -> Same as COST_IMP
+        dto.SiaCostDetailEcp_Score = dto.SiaTechDetailEcp_Score;
+
+        // Load active scoring weights from database
+        var weights = await GetActiveScoringWeightsAsync();
+
+        // Calculate SRR/PDR/CDR using configurable milestone weights
+        dto.SrrPdrCdr_Score = 
+            (srrScore * (weights.Milestone_SRR_WT / 100m)) + 
+            (pdrScore * (weights.Milestone_PDR_WT / 100m)) + 
+            (cdrScore * (weights.Milestone_CDR_WT / 100m));
+
+        // Overall combination using client-verified formula with effective weights:
+        // HICAT_COST = COST_IMP*COST_IMP_WT + TRL*(TRL_WT/5) + TIME_CRIT*TIME_CRIT_WT +
+        //              TECH_IMP*(TECH_WT/3) + DELIV*(DELIV_WT*1.5) +
+        //              (SRR_PDR_CDR_WT-0.1)*(SRR*SRR_WT+PDR*PDR_WT+CDR*CDR_WT) +
+        //              INTERD*INTERD_WT + SELFDEP*(SELFDEP_WT/2)
+        // Note: Cost sub-weights in ScoringFormulaWeights store EFFECTIVE values
+        // (already with /5, *1.5, /2 modifiers applied), so no additional modifiers needed.
         decimal rawTotalScore = 
-            (dto.SiaTechDetailEcp_Score * 0.05m) +
-            (dto.TRL_Score * 0.05m) +
-            (dto.Deliverables_Score * 0.15m) +
-            (dto.ManufacturingReadinessLevel_Score * 0.05m) +
-            (dto.SrrPdrCdr_Score * 0.15m) +
-            (dto.InterdependencyInterop_Score * 0.10m) +
-            (dto.InterdependencySelf_Score * 0.05m) +
-            (dto.TimeCriticality_Score * 0.10m) +
-            (dto.SiaCostDetailEcp_Score * 0.30m);
+            (dto.SiaTechDetailEcp_Score * (weights.Cost_SIA_TECH_ECP_WT / 100m)) +
+            (dto.TRL_Score * (weights.Cost_TRL_WT / 100m)) +
+            (dto.TimeCriticality_Score * (weights.Cost_TIME_CRIT_WT / 100m)) +
+            (dto.Tech_Impact_Score * (weights.Cost_TECH_IMP_WT / 100m)) +
+            (dto.Deliverables_Score * (weights.Cost_DELIV_WT / 100m)) +
+            (((weights.Cost_SRR_PDR_CDR_WT / 100m) - 0.1m) * (
+                (srrScore * (weights.Milestone_SRR_WT / 100m)) + 
+                (pdrScore * (weights.Milestone_PDR_WT / 100m)) + 
+                (cdrScore * (weights.Milestone_CDR_WT / 100m))
+            )) +
+            (dto.InterdependencyInterop_Score * (weights.Cost_INTERD_WT / 100m)) +
+            (dto.InterdependencySelf_Score * (weights.Cost_SELFDEP_WT / 100m));
 
-        // Apply Cost Category weight (75%)
-        dto.TotalHighCategoryCostScore = Math.Round(rawTotalScore * 0.75m, 2);
+        // Apply configurable overall weight for High Category Cost Score
+        dto.TotalHighCategoryCostScore = Math.Round(rawTotalScore * (weights.CostWeight / 100m), 2);
 
         return dto;
     }
@@ -529,6 +649,9 @@ public class ScoreCalculator
 
         // 4. COST_CORR_SCORE = (HICAT_COST_SCORE) / (TOTAL_WSM_COST)
         dto.CostCorrelatedScore = dto.TotalWsmCost > 0 ? Math.Round(dto.CostScore / dto.TotalWsmCost, 4) : 0m;
+
+        // 5. FinalPriorityScore
+        dto.FinalPriorityScore = dto.UserScore;
 
         return dto;
     }

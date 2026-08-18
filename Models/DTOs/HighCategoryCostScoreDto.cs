@@ -14,6 +14,11 @@ public class HighCategoryCostScoreDto
     public decimal TimeCriticality_Score { get; set; }
     
     /// <summary>
+    /// System Impact Assessment - TECH_IMP score from detailed SIA responses.
+    /// </summary>
+    public decimal Tech_Impact_Score { get; set; }
+
+    /// <summary>
     /// Calculated System Impact Assessment - COST Detail ECP.
     /// Formula: Actual Cost Score / Max Weights Total * 10
     /// </summary>
