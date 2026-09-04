@@ -8,3 +8,6 @@
 .vscode/
 appsettings.Development.json
 PointScore.http
+
+*.zip
+publish/
