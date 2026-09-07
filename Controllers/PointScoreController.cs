@@ -750,6 +750,26 @@ public async Task<IActionResult> ProcessMbse([FromBody] DataResponseDto request)
         try
         {
             var result = await _scoreCalculator.CalculateCostCorrectionScoreDetailsAsync(wsmRequestId);
+
+            var featureScore = await _context.FeatureScoresResults
+                .FirstOrDefaultAsync(f => f.WsmRequestId == wsmRequestId);
+
+            if (featureScore == null)
+            {
+                featureScore = new FeatureScoreResult
+                {
+                    WsmRequestId = wsmRequestId,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.FeatureScoresResults.Add(featureScore);
+            }
+
+            featureScore.WSM_COMP_SCORE = result.WsmCompositeScore;
+            featureScore.COST_CORR_SCORE = result.CostCorrelatedScore;
+            featureScore.WSM_FINAL_PRIORITY_SCORE = result.FinalPriorityScore;
+
+            await _context.SaveChangesAsync();
+
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
