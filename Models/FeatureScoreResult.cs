@@ -75,6 +75,7 @@ public class FeatureScoreResult
     public decimal? RISK_TOL_CONS_SCORE { get; set; }
     public decimal? TOTAL_WSM_COST { get; set; }
     public decimal? COST_CORR_SCORE { get; set; }
+    public decimal? WSM_FINAL_PRIORITY_SCORE { get; set; }
 
     // Marca de tiempo de la creación del registro.
     public DateTime? CreatedAt { get; set; }

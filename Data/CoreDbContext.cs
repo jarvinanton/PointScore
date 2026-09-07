@@ -11,7 +11,7 @@ namespace PointScore.Data
         public DbSet<License> Licenses { get; set; }
         public DbSet<LicenseUsage> LicenseUsages { get; set; }
         public DbSet<Project> Projects { get; set; }
-        // public DbSet<FeatureScoreResult> FeatureScoresResults { get; set; }
+        public DbSet<FeatureScoreResult> FeatureScoresResults { get; set; }
         public DbSet<MbseResult> MbseResults { get; set; }  
           // ============================APIScore======================================
         // DbSets - todos los modelos independientes
@@ -86,85 +86,25 @@ namespace PointScore.Data
         {
             base.OnModelCreating(modelBuilder);
             // ============================APIScore======================================
-             /*
             modelBuilder.Entity<Project>()
                 .HasOne(p => p.FeatureScoreResult)
                 .WithOne(fsr => fsr.Project)
                 .HasForeignKey<FeatureScoreResult>(fsr => fsr.ProjectId)
                 .IsRequired(false);
-            */
 
-            /*
-                modelBuilder.Entity<WsmRequest>()
-                    .HasOne(w => w.FeatureScoreResult)
-                    .WithOne(f => f.WsmRequest)
-                    .HasForeignKey<FeatureScoreResult>(f => f.WsmRequestId)
-                    .OnDelete(DeleteBehavior.Cascade);
-                */
+            modelBuilder.Entity<WsmRequest>()
+                .HasOne(w => w.FeatureScoreResult)
+                .WithOne(f => f.WsmRequest)
+                .HasForeignKey<FeatureScoreResult>(f => f.WsmRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            /* DEPRECATED: FeatureScoreResult entity configuration — entity removed
             modelBuilder.Entity<FeatureScoreResult>(entity =>
             {
-                // Configurar precisión para todas las propiedades decimal
-                entity.Property(e => e.ENG_SIA).HasPrecision(18, 2);
-                entity.Property(e => e.ENG_SIA_WT).HasPrecision(18, 2);
-                entity.Property(e => e.FNTL_SIA).HasPrecision(18, 2);
-                entity.Property(e => e.FNTL_SIA_WT).HasPrecision(18, 2);
-                entity.Property(e => e.COST_IMP).HasPrecision(18, 2);
-                entity.Property(e => e.COST_WT).HasPrecision(18, 2);
-                entity.Property(e => e.SCH_IMP).HasPrecision(18, 2);
-                entity.Property(e => e.SCH_IMP_WT).HasPrecision(18, 2);
-                entity.Property(e => e.TECH_IMP).HasPrecision(18, 2);
-                entity.Property(e => e.TECH_WT).HasPrecision(18, 2);
-                entity.Property(e => e.FNTL_IMP).HasPrecision(18, 2);
-                entity.Property(e => e.FNTL_IMP_WT).HasPrecision(18, 2);
-                entity.Property(e => e.TRL).HasPrecision(18, 2);
-                entity.Property(e => e.TRL_WT).HasPrecision(18, 2);
-                entity.Property(e => e.DELIV).HasPrecision(18, 2);
-                entity.Property(e => e.DELIV_WT).HasPrecision(18, 2);
-                entity.Property(e => e.MRL).HasPrecision(18, 2);
-                entity.Property(e => e.MRL_WT).HasPrecision(18, 2);
-                entity.Property(e => e.SRR).HasPrecision(18, 2);
-                entity.Property(e => e.SRR_WT).HasPrecision(18, 2);
-                entity.Property(e => e.PDR).HasPrecision(18, 2);
-                entity.Property(e => e.PDR_WT).HasPrecision(18, 2);
-                entity.Property(e => e.CDR).HasPrecision(18, 2);
-                entity.Property(e => e.CDR_WT).HasPrecision(18, 2);
-                entity.Property(e => e.SRR_PDR_CDR_WT).HasPrecision(18, 2);
-                entity.Property(e => e.INTERD).HasPrecision(18, 2);
-                entity.Property(e => e.INTERD_WT).HasPrecision(18, 2);
-                entity.Property(e => e.SELFDEP).HasPrecision(18, 2);
-                entity.Property(e => e.SELFDEP_WT).HasPrecision(18, 2);
-                entity.Property(e => e.ORI).HasPrecision(18, 2);
-                entity.Property(e => e.ORI_WT).HasPrecision(18, 2);
-                entity.Property(e => e.USER_IMP).HasPrecision(18, 2);
-                entity.Property(e => e.USER_IMP_WT).HasPrecision(18, 2);
-                entity.Property(e => e.TIME_CRIT).HasPrecision(18, 2);
-                entity.Property(e => e.TIME_CRIT_WT).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_TECH_WT).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_FNTL_WT).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_SCH_WT).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_USER_WT).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_COST_WT).HasPrecision(18, 2);
-                entity.Property(e => e.DEV_COST).HasPrecision(18, 2);
-                entity.Property(e => e.INSTALL_COST).HasPrecision(18, 2);
-                entity.Property(e => e.PROD_COST).HasPrecision(18, 2);
-                entity.Property(e => e.PROD_QTY).HasPrecision(18, 2);
-                entity.Property(e => e.TOT_PROD_COST).HasPrecision(18, 2);
-                entity.Property(e => e.TOTAL_WSM_COST).HasPrecision(18, 2);
-                
-                // Propiedades de puntuación
                 entity.Property(e => e.WSM_COMP_SCORE).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_TECH_SCORE).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_FNTL_SCORE).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_SCH_SCORE).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_USER_SCORE).HasPrecision(18, 2);
-                entity.Property(e => e.HICAT_COST_SCORE).HasPrecision(18, 2);
                 entity.Property(e => e.COST_CORR_SCORE).HasPrecision(18, 2);
-                entity.Property(e => e.RISK_TOL_LIKLI_SCORE).HasPrecision(18, 2);
-                entity.Property(e => e.RISK_TOL_CONS_SCORE).HasPrecision(18, 2);
+                entity.Property(e => e.WSM_FINAL_PRIORITY_SCORE).HasPrecision(18, 2);
+                entity.Property(e => e.CreatedAt).IsRequired(false);
             });
-            */ // END DEPRECATED FeatureScoreResult configuration
 
 
             // Configurar precisión para MbseResult
