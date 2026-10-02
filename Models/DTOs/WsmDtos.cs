@@ -748,7 +748,7 @@ public class WsmMrlResponseDto
     public class ImpactThresholdDto
     {
         [Required] public string ImpactThreshold { get; set; } = null!; // High, Medium, Low, None
-        public string? Comments { get; set; } // Mandatory only when “High” is selected
+        public string? Comments { get; set; } // Mandatory only when "Low" is selected
     }
 
     public class InitialSiaAssessmentDto
